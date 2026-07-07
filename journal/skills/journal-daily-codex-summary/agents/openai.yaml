@@ -1,0 +1,4 @@
+interface:
+  display_name: "Daily Journal Summary"
+  short_description: "Summarize today and suggest unaccepted Jira candidates."
+  default_prompt: "Summarize today from my Slack messages and daily journal notes, then write the Daily Codex Summary and Jira Ticket Candidates into the daily note."

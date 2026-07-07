@@ -1,0 +1,4 @@
+interface:
+  display_name: "Journal Last Week Summary"
+  short_description: "Summarize last week and suggest team focuses"
+  default_prompt: "Use $journal-last-week-summary to summarize the previous completed week from my daily notes, add suggested high-level team focuses for the following week, and write the weekly note."
