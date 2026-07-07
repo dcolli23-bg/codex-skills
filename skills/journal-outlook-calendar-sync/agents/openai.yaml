@@ -1,0 +1,4 @@
+interface:
+  display_name: "Outlook Journal Sync"
+  short_description: "Sync Outlook events to journal notes"
+  default_prompt: "Use $journal-outlook-calendar-sync to create today's Obsidian calendar notes from Outlook."

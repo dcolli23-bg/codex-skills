@@ -1,0 +1,4 @@
+interface:
+  display_name: "SSH Host Metrics"
+  short_description: "Capture SSH CPU and RAM timelines"
+  default_prompt: "Use $ssh-host-metrics to capture CPU and RAM metrics over SSH."
