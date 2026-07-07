@@ -1,0 +1,24 @@
+[
+    {
+        "program": "RAD",
+        "customer": "Dev",
+        "site": "BIL",
+        "site_name": "Billerica",
+        "index_name": "logs",
+        "elastic_url": "https://afbe1894abe74f6684dcd21e462b8a68.us-east-1.aws.found.io:443",
+        "kibana_url": "https://5aaf267ca78b4a4aae4ff470d3b49ff7.us-east-1.aws.found.io:9243/s/bill-autostore/app/discover#",
+        "index_alias": "rad-bill1-log.records-alias",
+        "index_id": "44dd04ba-99ad-4812-864c-f784c84f7e1e",
+        "system": "ALL",
+        "system_scope_field": "system_name",
+        "system_scope_value": "",
+        "default_system_scope_values": [
+            "bg_p2_1",
+            "bg_p2_2",
+            "bg_p2_3",
+            "bg_p2_4",
+            "bg_p2_5",
+            "bg_p2_6"
+        ]
+    }
+]
