@@ -29,7 +29,10 @@ Follow `~/journal/calendars/AGENTS.md` for frontmatter, folder routing, mandator
 
 2. Fetch Outlook events.
    - If Outlook calendar tools are not loaded, discover them with `tool_search` for "Microsoft Outlook Calendar list events".
-   - Use the Outlook Calendar `list_events` tool with `start_datetime`, `end_datetime`, `order_by="start/dateTime asc"`, and a generous `top` such as `200`.
+   - First use the Outlook Calendar `list_events` tool with `start_datetime`, `end_datetime`, `order_by="start/dateTime asc"`, and a generous `top` such as `200`.
+   - **Do not treat that full-day response as a complete inventory when its rendered output is truncated.** The connector can return large invite bodies even when a narrow field selection is requested, which can hide events in the displayed result.
+   - Perform a mandatory coverage pass over the same local day in non-overlapping one-hour windows using `list_events` with the same ordering and `top`. Use smaller windows if an hour still produces a truncated response. Collect the union of events by `id`; this de-duplicates events that overlap window boundaries.
+   - Use the coverage-pass union as the authoritative event set for the sync and its reported fetched count. Do not infer the count from existing journal notes or from only the visible portion of a tool result.
    - Use the signed-in user's primary calendar unless Dylan explicitly asks for a shared/delegated calendar.
    - Skip cancelled events. Include accepted, tentative, and organizer events. If a declined event still appears, skip it unless Dylan asked for every visible event.
 
@@ -101,9 +104,10 @@ Follow `~/journal/calendars/AGENTS.md` for frontmatter, folder routing, mandator
    - Keep transclusions in chronological order while preserving non-calendar text the user already wrote.
 
 7. Verify.
+   - Reconcile every non-skipped event ID from the authoritative coverage-pass union against a calendar note for the requested date and a daily-note transclusion. Resolve any missing IDs before reporting success.
    - Read back the modified daily note and any newly created note shapes.
-   - Report how many events were fetched, created, updated, skipped, and embedded.
-   - Mention any uncertain folder routing or title collisions.
+   - Report how many events were fetched, created, updated, skipped, and embedded. The fetched count must be the coverage-pass union count.
+   - Mention any uncertain folder routing, title collisions, or events that could not be reconciled.
 
 ## Editing Rules
 
