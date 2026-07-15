@@ -11,6 +11,7 @@ This repository stores Dylan's personal Codex setup, including custom Codex skil
 - `journal/skills/`: source-controlled skills that should be installed project-locally into Dylan's journal vault.
 - `journal/AGENTS.md`: the source-controlled AGENTS instructions for Dylan's journal vault.
 - `.venvs/`: local virtual environments used by skills. This directory is intentionally ignored by git.
+- `SYSTEMD_JOURNAL_SUMMARY_JOBS.md`: setup and troubleshooting instructions for the user-level systemd jobs that run scheduled journal daily and weekly summaries.
 
 ## Skill Symlink Pattern
 
@@ -71,6 +72,10 @@ using:
 ```bash
 ln -sfn ~/code/codex-skills/journal/AGENTS.md ~/journal/AGENTS.md
 ```
+
+## Scheduled Journal Summary Jobs
+
+When creating, repairing, or documenting Dylan's scheduled journal daily/weekly summary jobs, use `SYSTEMD_JOURNAL_SUMMARY_JOBS.md` as the source of truth. In particular, preserve the explicit `EnvironmentFile=%h/.config/environment.d/bg-ai-gateway.conf` service setting so timer-triggered jobs do not depend on API keys imported from an interactive shell.
 
 ## Virtual Environments
 
