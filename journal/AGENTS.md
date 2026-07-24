@@ -28,7 +28,7 @@ Generated Outlook event notes should preserve existing user-written content. Tre
 
 ## Reading Strategy
 
-Before any other action in this vault, including casual greetings, status replies, planning, or answering questions, read `UNKNOWN_ACRONYMS.md`. Treat this as a startup gate for every assistant turn. If `## Unresolved` contains any unchecked entries and the session is interactive, ask Dylan to clarify them before continuing with the original request, unless Dylan explicitly says to skip acronym clarification for that turn. When Dylan clarifies a term, add or update the matching concise note in `acronyms/` and remove or mark the entry resolved in `UNKNOWN_ACRONYMS.md`.
+Before any other action in this vault, including casual greetings, status replies, planning, or answering questions, read `UNKNOWN_ACRONYMS.md`. Treat this as a startup gate for every assistant turn. If `## Unresolved` contains unchecked entries other than standalone first-name references and the session is interactive, ask Dylan to clarify them before continuing with the original request, unless Dylan explicitly says to skip acronym clarification for that turn. Standalone first names (for example, `John` or `Will`) may remain unresolved for context, but must not block work or trigger a clarification request by themselves. When Dylan clarifies a term, add or update the matching concise note in `acronyms/` and remove or mark the entry resolved in `UNKNOWN_ACRONYMS.md`.
 
 Start with `rg --files` and targeted `sed -n` reads. Do not bulk-load the vault unless necessary.
 
@@ -36,7 +36,7 @@ Daily notes often contain `[[wikilinks]]` or `![[transclusions]]`. The linked/tr
 
 Skip or compress low-signal notes such as empty standups, lunch blocks, calendar metadata, and notes that only say "morning work" without details.
 
-If you encounter an unfamiliar acronym, shorthand, person abbreviation, product name, customer/site label, or domain term, search `acronyms/` first. If the term is missing but the current notes or user clarify it, add or update a concise note in `acronyms/` so future agents inherit the context. If the meaning is still not confirmed, do not guess or silently create an uncertain glossary entry; add or update an unresolved entry in `UNKNOWN_ACRONYMS.md` with the term, source/context, and the question Dylan should answer. Do not add unresolved acronym entries for interview candidate names; candidate context belongs in `interviews/` notes and should be handled with extra discretion.
+If you encounter an unfamiliar acronym, shorthand, person abbreviation, product name, customer/site label, or domain term, search `acronyms/` first. If the term is missing but the current notes or user clarify it, add or update a concise note in `acronyms/` so future agents inherit the context. If the meaning is still not confirmed, do not guess or silently create an uncertain glossary entry; add or update an unresolved entry in `UNKNOWN_ACRONYMS.md` with the term, source/context, and the question Dylan should answer. Do not add unresolved entries for standalone first names unless Dylan specifically asks to identify that person or the identity is necessary to complete the task. Do not add unresolved acronym entries for interview candidate names; candidate context belongs in `interviews/` notes and should be handled with extra discretion.
 
 ## Common Work Themes
 
