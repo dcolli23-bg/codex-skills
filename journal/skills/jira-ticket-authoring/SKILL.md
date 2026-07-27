@@ -35,12 +35,14 @@ Default authoring policy unless the user says otherwise:
 
 Every section must contain substantive content.
 
-Always include source references in `### Background` when they exist, such as:
+Always include source references in `### Background` when they exist, except local Markdown files. Eligible references include:
 - Slack thread links
 - Box document links
 - related Jira tickets
 - GitHub PRs or issues
-- local file references when relevant
+- local logs, screenshots, or other non-Markdown artifacts when relevant
+
+Do not include local Markdown-file paths, Obsidian links, or references to `.md` notes in Jira descriptions, comments, or user-facing drafts. Use those notes as internal evidence only.
 
 Format every URL in ticket descriptions, Jira comments, and user-facing ticket drafts as a Markdown hyperlink. Do not leave bare URLs in drafted or written ticket content. Prefer descriptive labels that name the destination, for example:
 - `Source thread: [Slack thread about <topic>](<url>)`
@@ -69,7 +71,7 @@ Format every URL in ticket descriptions, Jira comments, and user-facing ticket d
 - if an important conclusion is uncertain, state the uncertainty instead of smoothing over it
 
 4. Build the Jira structure:
-- `### Background`: concise problem statement, system/site context, impact, and source references
+- `### Background`: concise problem statement, system/site context, impact, and eligible source references (never local Markdown files)
 - `### Technical Details`: exact technical evidence, system names, logs, screenshots, links, constraints, and related tickets
 - `### Definition of Done`: concrete investigation, fix, validation, or handoff outcomes
 
