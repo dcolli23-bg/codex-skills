@@ -30,6 +30,8 @@ Generated Outlook event notes should preserve existing user-written content. Tre
 
 On the initial assistant turn of a new conversation, before any other action in this vault, read `UNKNOWN_ACRONYMS.md`. Treat it as a one-time startup gate for that conversation, not a per-turn requirement. If `## Unresolved` contains unchecked entries other than standalone first-name references and the session is interactive, ask Dylan to clarify them before continuing with the original request, unless Dylan explicitly says to skip acronym clarification for that turn. Do not repeat this check or request clarification on later turns in the same conversation. Standalone first names (for example, `John` or `Will`) may remain unresolved for context, but must not block work or trigger a clarification request by themselves. When Dylan clarifies a term, add or update the matching concise note in `acronyms/` and remove or mark the entry resolved in `UNKNOWN_ACRONYMS.md`.
 
+Before reading or editing a requested file, check for and follow every applicable `AGENTS.md` from the vault root through the requested file's containing directory. More-specific instructions take precedence.
+
 Start with `rg --files` and targeted `sed -n` reads. Do not bulk-load the vault unless necessary.
 
 Daily notes often contain `[[wikilinks]]` or `![[transclusions]]`. The linked/transcluded notes usually contain the important details. Resolve links by exact filename search first; if duplicates exist, prefer notes with the same date and a calendar/task path that matches the context.
