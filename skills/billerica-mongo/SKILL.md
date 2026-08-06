@@ -18,7 +18,7 @@ Use the bundled scripts rather than hand-writing port-forward logic:
 The eval script calls `ensure_bill_mongo_forward.sh`, which starts or reuses:
 
 ```text
-kubectl --context k8s/bg-rad-bill1-context -n mongodb-7 port-forward pod/mongodb-1 27017:27017
+kubectl --context k8s/bg-rad-bill1-context -n mongodb-7 port-forward pod/mongodb-1 27018:27017
 ```
 
 If the default context cannot read the namespace, it falls back to:
@@ -30,7 +30,7 @@ k8s/bg-rad-bill1-context-(privileged)
 The default URI is:
 
 ```text
-mongodb://127.0.0.1:27017/?directConnection=true&readPreference=secondary
+mongodb://127.0.0.1:27018/?directConnection=true&readPreference=secondary
 ```
 
 ## Safety Rules
