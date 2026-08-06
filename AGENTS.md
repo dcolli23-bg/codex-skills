@@ -73,6 +73,32 @@ using:
 ln -sfn ~/code/codex-skills/journal/AGENTS.md ~/journal/AGENTS.md
 ```
 
+## Home Directory Instructions
+
+Track home-directory-wide Codex instructions at:
+
+```text
+~/code/codex-skills/home-AGENTS.md
+```
+
+Expose them at the home-directory root as:
+
+```text
+~/AGENTS.md
+```
+
+using:
+
+```bash
+ln -sfn ~/code/codex-skills/home-AGENTS.md ~/AGENTS.md
+```
+
+Verify the symlink with:
+
+```bash
+readlink -f ~/AGENTS.md
+```
+
 ## Scheduled Journal Summary Jobs
 
 When creating, repairing, or documenting Dylan's scheduled journal daily/weekly summary jobs, use `SYSTEMD_JOURNAL_SUMMARY_JOBS.md` as the source of truth. In particular, preserve the explicit `EnvironmentFile=%h/.config/environment.d/bg-ai-gateway.conf` service setting so timer-triggered jobs do not depend on API keys imported from an interactive shell.
@@ -91,6 +117,7 @@ source ~/code/codex-skills/.venvs/bg-elasticsearch/bin/activate
 
 - Treat `skills/` as the source of truth for custom skills.
 - Treat `journal/skills/` and `journal/AGENTS.md` as the source of truth for journal-local Codex behavior.
+- When adding or changing a source-controlled configuration, skill, or instruction file that is installed or exposed elsewhere, update this document's installation and symlink instructions in the same change.
 - Update the skill in this repository first; the `~/.codex/skills/` path should normally just be a symlink.
 - For journal-local skills, update this repository first; `~/journal/.codex/skills/` should normally just contain symlinks.
 - Keep generated caches, local credentials, and virtual environments out of git.
