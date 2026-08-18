@@ -92,7 +92,7 @@ if [[ ! -f "daily/${DATE}.md" ]]; then
 fi
 
 codex exec \
-  --full-auto \
+  --approve-for-me \
   -C "$JOURNAL" \
   -o "$LAST_MESSAGE" \
   "Use the journal-daily-codex-summary skill. This is a scheduled, non-interactive run. Before reading note context, read AGENTS.md and UNKNOWN_ACRONYMS.md. Generate or replace the Daily Codex Summary for ${DATE}. Use Slack plus the journal daily note and directly linked/transcluded notes. If you discover unfamiliar acronyms, shorthand, people, product names, site labels, or domain terms whose meaning is not confirmed by acronyms/ or context, do not ask the user in this run. Instead, create or update top-level UNKNOWN_ACRONYMS.md with concise unresolved entries including the term, date, source note or Slack context, and the question Dylan should answer. Only create or update acronyms/ entries when the meaning is confirmed by the existing glossary, notes, or this prompt. Keep edits scoped to daily/${DATE}.md, acronyms/ entries with confirmed meanings, and UNKNOWN_ACRONYMS.md."
@@ -152,7 +152,7 @@ mkdir -p "$LOG_DIR"
 cd "$JOURNAL"
 
 codex exec \
-  --full-auto \
+  --approve-for-me \
   -C "$JOURNAL" \
   -o "$LAST_MESSAGE" \
   "Use the journal-last-week-summary skill. This is a scheduled, non-interactive run. Before reading note context, read AGENTS.md and UNKNOWN_ACRONYMS.md. Generate or fully regenerate the weekly summary for the previous fully completed Monday-Sunday week. Read the relevant daily notes, directly linked/transcluded notes, and write the result to the correct weekly/weekly-summary-YYYY-MM-DD.md file. If you discover unfamiliar acronyms, shorthand, people, product names, site labels, or domain terms whose meaning is not confirmed by acronyms/ or context, do not ask the user in this run. Instead, create or update top-level UNKNOWN_ACRONYMS.md with concise unresolved entries including the term, source/date context, and the question Dylan should answer. Only create or update acronyms/ entries when the meaning is confirmed by the existing glossary, notes, or this prompt. Keep edits scoped to the weekly summary file, acronyms/ entries with confirmed meanings, and UNKNOWN_ACRONYMS.md."
@@ -287,6 +287,6 @@ No daily note found for YYYY-MM-DD; skipping daily summary.
 
 This avoids creating empty or misleading daily notes from a scheduled job.
 
-### Codex CLI warning about `--full-auto`
+### Codex CLI compatibility
 
-The current scripts use `--full-auto` because that matches the existing setup. If Codex removes that flag, update the wrapper scripts to the replacement non-interactive workspace-write mode recommended by the installed Codex CLI.
+Current Codex CLI versions use `--approve-for-me` with `codex exec` for unattended workspace-write automation. Do not use the obsolete `--full-auto` flag; it is rejected by current releases. If this flag changes in a future CLI release, update both wrapper scripts and the installation examples to the replacement non-interactive workspace-write mode recommended by the installed Codex CLI.
