@@ -1,0 +1,7 @@
+interface:
+  display_name: "GAI Dorkspace"
+  short_description: "Use GAI through its running system container"
+  default_prompt: "Use $gai-dorkspace to work safely in the GAI system container."
+
+policy:
+  allow_implicit_invocation: true

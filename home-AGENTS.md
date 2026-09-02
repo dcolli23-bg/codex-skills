@@ -34,6 +34,18 @@ When Dylan says “work in the RAD P2 container,” “work in rad p2,” or equ
 - Read applicable repository `AGENTS.md` files beneath `src/` before editing.
 - Do not start, stop, rebuild, or otherwise disrupt the container or system unless Dylan asks, or the task requires it and the impact is stated first.
 
+## GAI Dorkspace
+
+When Dylan says “work in GAI,” references `/home/dcolli23/dorkspaces/gai`, or equivalent, use the `gai-dorkspace` skill and treat that path as the active development environment until he changes it.
+
+- The host workspace maps into system containers as `/opt/bg/ws`; the ROS 2 source tree is `/opt/bg/ws/src`.
+- Run GAI repository inspection, Git commands, builds, tests, ROS commands, dependency work, and runtime inspection inside the relevant running system container.
+- Prefer `ds exec <system>-bg-processes`; do not default to SSH or the generic workspace container.
+- For the RAD ABB FA system, use `ds exec rad_abb_fa-bg-processes`.
+- Determine the relevant running system container from the request and current state rather than guessing.
+- Read applicable repository `AGENTS.md` files beneath `src/` before editing.
+- Do not start, stop, restart, rebuild, update, or otherwise disrupt workspace or system containers unless Dylan asks, or the task requires it and the impact is stated first.
+
 ## UMI Dorkspace
 
 When Dylan says “work in UMI,” “work in the UMI container,” or equivalent, treat `/home/dcolli23/dorkspaces/umi_ws` as the active development environment until he changes it.
