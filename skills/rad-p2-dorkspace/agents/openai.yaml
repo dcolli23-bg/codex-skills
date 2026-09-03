@@ -1,0 +1,4 @@
+interface:
+  display_name: "RAD P2 Dorkspace"
+  short_description: "Work safely in the RAD P2 Dorkspace"
+  default_prompt: "Use $rad-p2-dorkspace to work in the RAD P2 Dorkspace."

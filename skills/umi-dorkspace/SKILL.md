@@ -1,9 +1,9 @@
 ---
 name: umi-dorkspace
-description: Work safely in Dylan's UMI Dorkspace. Use when the user says “work in UMI,” “work in the UMI container,” or asks to build, test, debug, inspect, or run software in `/home/dcolli23/dorkspaces/umi_ws`.
+description: Work safely in Dylan's UMI/SUMI Dorkspace. Use when the user says “work in UMI,” “work in SUMI,” “work in the UMI container,” or asks to build, test, debug, inspect, or run software in `/home/dcolli23/dorkspaces/umi_ws`.
 ---
 
-# UMI Dorkspace
+# UMI / SUMI Dorkspace
 
 Use the UMI Dorkspace as the active development environment until the user selects another environment.
 
@@ -14,9 +14,11 @@ Use the UMI Dorkspace as the active development environment until the user selec
 - Host source tree: `/home/dcolli23/dorkspaces/umi_ws/src`
 - Container source tree: `/opt/bg/ws/src`
 
-The workspace is bind-mounted, so edits in either location affect the same files. Make container-side builds, tests, ROS commands, dependency checks, and runtime inspection; use host-side paths for normal file edits and Git inspection unless container behavior matters.
+The workspace is bind-mounted, so edits in either location affect the same files. Perform all code and repository reads directly on the host source tree, including source searches, file inspection, `AGENTS.md` discovery, and Git inspection. Make normal source edits there as well. Do not connect to a container merely to read the bind-mounted source.
 
-## Connect
+Use a container only for builds, tests, ROS commands, environment-dependent dependency checks, and runtime inspection.
+
+## Connect when container execution is required
 
 1. Read `docker/docker-compose.yml` and the relevant `docker/systems/` configuration before connecting.
 2. Verify whether appropriate workspace or system containers are already running without changing state:
@@ -57,8 +59,8 @@ The workspace is bind-mounted, so edits in either location affect the same files
 
 ## Work safely
 
-- Before editing under `src/`, discover and follow every applicable nested `AGENTS.md`.
-- Inspect `git status` before changing a repository and preserve unrelated modifications. The top-level `umi_ws` workspace may contain local, uncommitted changes.
+- Before editing under the host `src/`, discover and follow every applicable nested `AGENTS.md`.
+- Inspect repository status on the host before changing files and preserve unrelated modifications. The top-level `umi_ws` workspace may contain local, uncommitted changes.
 - Do not use host tools as evidence that a ROS build or test works in a container.
 - Do not start, stop, restart, rebuild, or update the Dorkspace or system containers unless the user explicitly requests it, or the task requires it and the impact is stated first.
 - If no suitable container is running, report that fact and ask before lifecycle actions. Do not silently start a container.

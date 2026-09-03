@@ -1,6 +1,6 @@
 ---
 name: gai-dorkspace
-description: Work safely in Dylan's GAI Dorkspace through the relevant running system container. Use when the user says “work in GAI,” references `/home/dcolli23/dorkspaces/gai`, or asks to build, test, debug, inspect, or run GAI software.
+description: Work safely in Dylan's GAI Dorkspace through its host-mounted source and relevant running system container. Use when the user says “work in GAI,” references `/home/dcolli23/dorkspaces/gai`, or asks to build, test, debug, inspect, or run GAI software.
 ---
 
 # GAI Dorkspace
@@ -18,11 +18,18 @@ selects another environment.
 The workspace is bind-mounted, so edits in either location affect the same
 files.
 
-## Use the system container
+## Read and edit on the host
 
-Run GAI repository inspection, Git commands, builds, tests, ROS commands,
-dependency work, and runtime inspection inside the relevant running system
-container. Do not default to SSH or the generic `workspace` container.
+Perform all code and repository reads directly on the host source tree,
+including source searches, file inspection, `AGENTS.md` discovery, and Git
+inspection. Make normal source edits there as well. Do not enter a container
+merely to read the bind-mounted source.
+
+## Use the system container for execution
+
+Run builds, tests, ROS commands, environment-dependent dependency checks, and
+runtime inspection inside the relevant running system container. Do not
+default to SSH or the generic `workspace` container.
 
 1. Determine the target GAI system from the user's request and the currently
    running containers. Do not guess when it is ambiguous.
@@ -41,18 +48,16 @@ container. Do not default to SSH or the generic `workspace` container.
    ```
 
 4. After entering, verify that the working directory is `/opt/bg/ws` before
-   operating on the source tree.
-
-Host-side `apply_patch` edits are acceptable because the workspace is
-bind-mounted, but inspect and validate the resulting repository state from
-the system container.
+   running environment-dependent commands.
 
 ## Work safely
 
 - State the selected GAI system container in the first substantive progress
-  update.
-- Read every applicable repository `AGENTS.md` beneath `src/` before editing.
-- Inspect repository status before changing files and preserve unrelated work.
+  update when container execution is required.
+- Read every applicable repository `AGENTS.md` beneath the host `src/` before
+  editing.
+- Inspect repository status on the host before changing files and preserve
+  unrelated work.
 - Do not use host-side builds or tests as evidence that GAI software works.
 - Do not start, stop, restart, rebuild, update, or otherwise disrupt a
   workspace or system container unless the user explicitly requests it, or
