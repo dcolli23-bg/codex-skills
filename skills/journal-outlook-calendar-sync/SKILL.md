@@ -31,8 +31,10 @@ Follow `~/journal/calendars/AGENTS.md` for frontmatter, folder routing, mandator
    - If Outlook calendar tools are not loaded, discover them with `tool_search` for "Microsoft Outlook Calendar list events".
    - First use the Outlook Calendar `list_events` tool with `start_datetime`, `end_datetime`, `order_by="start/dateTime asc"`, and a generous `top` such as `200`.
    - **Do not treat that full-day response as a complete inventory when its rendered output is truncated.** The connector can return large invite bodies even when a narrow field selection is requested, which can hide events in the displayed result.
+   - **A truncated full-day response is expected discovery output, not a failure or stopping condition.** Do not report the sync blocked, incomplete, or unable to proceed solely because this initial response truncates. Immediately continue to the hourly coverage pass; the full-day response is never authorization to edit and never a reason to skip the pass.
    - Perform a mandatory coverage pass over the same local day in **all 24** non-overlapping one-hour windows using `list_events` with the same ordering and `top`. Use smaller windows if an hour still produces a truncated response. Collect the union of events by `id`; this de-duplicates events that overlap window boundaries.
    - **Hard coverage gate — do not read, create, update, or report on any journal notes until the coverage pass is complete.** Keep a checklist for `00:00–01:00` through `23:00–00:00`; mark a window complete only after its `list_events` response has been received and checked for truncation. A full-day response, an existing daily note, or a partial set of hourly calls never satisfies this gate. If interrupted, resume at the first unchecked window rather than editing from the partial inventory.
+   - If a user requests several dates, complete this fetch-and-coverage sequence independently for one date at a time. Do not move to the next date, summarize partial results, or abandon the requested run after a truncated full-day query.
    - Immediately before step 3, state internally: `Coverage complete: 24/24 hourly windows checked; union contains N unique event IDs.` If that statement cannot be made truthfully, return to the coverage pass. This is a required phase boundary, not a suggestion.
    - Use the coverage-pass union as the authoritative event set for the sync and its reported fetched count. Do not infer the count from existing journal notes or from only the visible portion of a tool result.
    - Use the signed-in user's primary calendar unless Dylan explicitly asks for a shared/delegated calendar.
@@ -117,3 +119,7 @@ Follow `~/journal/calendars/AGENTS.md` for frontmatter, folder routing, mandator
 Use `apply_patch` for manual file edits. Keep changes scoped to `~/journal/daily/`, `~/journal/calendars/`, and only the requested date unless Dylan asks for a broader repair.
 
 Do not expose private invite content in the final answer. Summarize operationally: file paths, counts, and any decisions that need Dylan's review.
+
+## Non-Completion Handling
+
+If the coverage pass cannot be completed, do not modify journal files and do not characterize the full-day response as the fetched inventory. State the exact coverage status (for example, `2/24 hourly windows completed`) and continue or resume at the first unchecked hour when possible. A truncated full-day response by itself must never be given as the reason the hourly pass was not attempted.
