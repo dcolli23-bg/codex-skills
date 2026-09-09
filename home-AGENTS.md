@@ -1,5 +1,11 @@
 # Home Directory AGENTS.md
 
+## Obsidian Journal Vault
+
+Dylan's Obsidian vault is at `/home/dcolli23/journal` (`~/journal`). When a prompt is ambiguous or needs additional personal or work context, consult the vault for relevant dev logs, meeting notes, TODOs, acronym definitions, and informal thoughts before guessing or asking for clarification.
+
+If it is unclear which resource to search first—such as Slack, Box, or another connected source—searching the journal is a strong default first step. Use clues from the prompt to narrow the journal search, and consult more authoritative or current sources afterward when appropriate.
+
 ## Shared Acronym Knowledge Base
 
 For unfamiliar work acronyms, shorthand, people abbreviations, product names, customer/site labels, or domain terms, consult the journal knowledge base before guessing:
