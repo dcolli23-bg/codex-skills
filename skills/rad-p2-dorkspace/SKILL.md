@@ -7,6 +7,16 @@ description: Work safely in Dylan's RAD P2 Dorkspace container. Use when the use
 
 Use the RAD P2 container as the active development environment until the user selects another environment.
 
+## Required host check
+
+Before any other inspection or command for this skill, run:
+
+```bash
+~/code/codex-skills/scripts/require-container-host.sh
+```
+
+If the guard fails, stop immediately and report its error. Do not continue with host workspace inspection or container operations.
+
 ## Workspace map
 
 - Host workspace: `/home/dcolli23/dorkspaces/rad_p2`

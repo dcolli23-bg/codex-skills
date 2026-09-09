@@ -11,6 +11,16 @@ Search `acronyms/` first. If a term remains unresolved, use the context availabl
 
 Do not treat standalone first names in `UNKNOWN_ACRONYMS.md` as blocking unless their identity is necessary for the task.
 
+## Container Skill Host Guard
+
+Before doing any work with containers or invoking a container-oriented skill, run:
+
+```bash
+~/code/codex-skills/scripts/require-container-host.sh
+```
+
+Run the guard before any other inspection or command for GAI, UMI/SUMI, RAD P2, or another container environment. If it fails, stop immediately and report its error. Do not inspect, enter, start, stop, build, test, or otherwise operate on containers from that host.
+
 ## Personal Codex Skills
 
 Keep the source of personal, version-controlled skills in `/home/dcolli23/code/codex-skills/skills/<skill-name>/`. Expose each to Codex using a symlink at `/home/dcolli23/.codex/skills/<skill-name>`; do not create standalone copied skill directories under `.codex/skills`.

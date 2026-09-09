@@ -8,6 +8,7 @@ This repository stores Dylan's personal Codex setup, including custom Codex skil
 
 - `skills/`: source-controlled Codex skills.
 - `skills/<skill-name>/`: one skill per directory, with its own `SKILL.md` and any supporting `references/`, `scripts/`, `agents/`, or assets.
+- `scripts/`: shared scripts used by multiple skills or home-directory instructions.
 - `journal/skills/`: source-controlled skills that should be installed project-locally into Dylan's journal vault.
 - `journal/AGENTS.md`: the source-controlled AGENTS instructions for Dylan's journal vault.
 - `.venvs/`: local virtual environments used by skills. This directory is intentionally ignored by git.
@@ -98,6 +99,17 @@ Verify the symlink with:
 ```bash
 readlink -f ~/AGENTS.md
 ```
+
+## Shared Container Host Guard
+
+Container-oriented skills and home-directory instructions use:
+
+```text
+~/code/codex-skills/scripts/require-container-host.sh
+```
+
+Run this guard before any container-related work. It permits container skills
+only when the hostname is `dylan-lambda`.
 
 ## Scheduled Journal Summary Jobs
 
