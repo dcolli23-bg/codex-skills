@@ -13,6 +13,15 @@ Do not treat standalone first names in `UNKNOWN_ACRONYMS.md` as blocking unless 
 
 ## Container Skill Host Guard
 
+Repositories that Dylan explicitly points to beneath `~/code/` are standalone clones for file inspection and small local commits. They are not associated with development containers. For work scoped to one of these repositories:
+
+- Do not run the container host guard.
+- Do not invoke container-oriented skills or container workflows.
+- Inspect and edit files directly in the repository.
+- Do not build, test, run, or otherwise execute repository code unless Dylan explicitly provides a non-container workflow.
+
+This exception applies based on the explicitly requested repository path, even when its name or contents refer to GAI, UMI/SUMI, RAD P2, or another container-backed application.
+
 Before doing any work with containers or invoking a container-oriented skill, run:
 
 ```bash
