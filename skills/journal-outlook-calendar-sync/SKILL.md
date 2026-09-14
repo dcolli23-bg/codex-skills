@@ -20,6 +20,15 @@ This skill intentionally skips the `~/journal/UNKNOWN_ACRONYMS.md` startup gate.
 
 Follow `~/journal/calendars/AGENTS.md` for frontmatter, folder routing, mandatory meeting headings, Outlook ID fields, filename rules, and idempotency behavior.
 
+## Execution Model
+
+For every invocation, delegate the sync workflow to a subagent using:
+
+- model: `gpt-5.6-luna`
+- reasoning effort: `medium`
+
+The subagent should perform the Outlook coverage pass, event normalization, calendar-note creation or update, daily-note embedding, and verification. The parent agent should review the subagent's result before reporting completion.
+
 ## Workflow
 
 1. Determine the sync date.
