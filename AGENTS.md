@@ -4,6 +4,29 @@
 
 This repository stores Dylan's personal Codex setup, including custom Codex skills and local configuration notes that should be version controlled.
 
+The source repository is `/home/dcolli23/code/codex-skills`. These instructions
+are also exposed at `~/.codex/skills/AGENTS.md`; that directory contains skill
+discovery symlinks, not a separate source repository.
+
+## Commit and Push Authorization
+
+When Dylan requests creation or modification of a personal skill, that request
+also authorizes committing and pushing the task-related changes to this
+repository after appropriate validation. No separate conversational request
+to commit or push is required. This includes the skill's supporting scripts,
+tests, metadata, and relevant installation/instruction updates.
+
+- Honor any explicit instruction not to commit or push.
+- Review the working tree and staged diff; include only changes belonging to
+  the requested task and preserve unrelated work.
+- Confirm the intended branch and remote before pushing. Use a normal push;
+  do not force-push, rewrite history, or include unrelated unpushed commits
+  under this authorization.
+- If the destination is ambiguous or the push requires reconciling divergent
+  history, stop and ask rather than guessing or rewriting.
+- Filesystem/network tool approvals still apply. This permission does not
+  authorize commits or pushes in other repositories.
+
 ## Layout
 
 - `skills/`: source-controlled Codex skills.
@@ -35,6 +58,27 @@ and visible to Codex at:
 ```text
 ~/.codex/skills/bg-elasticsearch
 ```
+
+Expose these source-controlled instructions in the discovery directory:
+
+```bash
+ln -sfn ~/code/codex-skills/AGENTS.md ~/.codex/skills/AGENTS.md
+readlink -f ~/.codex/skills/AGENTS.md
+```
+
+## PR Review Follow-up Installation
+
+The PR feedback audit skill lives in `skills/pr-review-followup/`. Install it
+with the same personal-skill symlink pattern:
+
+```bash
+ln -sfn ~/code/codex-skills/skills/pr-review-followup ~/.codex/skills/pr-review-followup
+readlink -f ~/.codex/skills/pr-review-followup
+```
+
+Invoke `$pr-review-followup` with a PR and desired scope. Audits are read-only
+unless posting is explicitly requested. Keep downloaded discussions, reply
+plans, and receipts outside this repository.
 
 ## Journal-Local Skills
 

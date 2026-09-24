@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Review Follow-up"
+  short_description: "Audit PR feedback and explain verified fixes"
+  default_prompt: "Use $pr-review-followup to audit this PR’s comments against its current code and summarize remaining work; post replies only if I ask."
