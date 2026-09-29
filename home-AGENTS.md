@@ -17,6 +17,10 @@ Search `acronyms/` first. If a term remains unresolved, use the context availabl
 
 Do not treat standalone first names in `UNKNOWN_ACRONYMS.md` as blocking unless their identity is necessary for the task.
 
+## Berkshire Grey GitHub Access
+
+For GitHub access involving Berkshire Grey repositories or Dylan's `dcolli23-bg` account, prefer the `bga-connections` skill and its BG AI Gateway connection over the general GitHub connector. Read the skill instructions, inspect the connection's permissions, and use its approved read-only GitHub endpoints before concluding that a repository or PR review is inaccessible. If that route is unavailable or lacks access, report the specific limitation rather than assuming that a GitHub App installation grants effective access. Follow the skill's explicit-request requirements before posting reviews or making other changes.
+
 ## Container Skill Host Guard
 
 Repositories that Dylan explicitly points to beneath `~/code/` are standalone clones for file inspection and small local commits. They are not associated with development containers. For work scoped to one of these repositories:
