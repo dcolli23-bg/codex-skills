@@ -1,0 +1,3 @@
+interface:
+  display_name: "BG PR Readiness"
+  short_description: "Review BG changes for runtime and PR readiness"

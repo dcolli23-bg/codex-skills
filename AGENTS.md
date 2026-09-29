@@ -80,6 +80,20 @@ Invoke `$pr-review-followup` with a PR and desired scope. Audits are read-only
 unless posting is explicitly requested. Keep downloaded discussions, reply
 plans, and receipts outside this repository.
 
+## BG PR Readiness Installation
+
+The standalone personal review skill lives in `skills/bg-pr-readiness/`. Expose
+it through the personal-skill symlink:
+
+```bash
+ln -sfn ~/code/codex-skills/skills/bg-pr-readiness ~/.codex/skills/bg-pr-readiness
+readlink -f ~/.codex/skills/bg-pr-readiness
+```
+
+Use `$bg-pr-readiness` for a fresh review of a BG PR or proposed change.
+It drafts findings without editing or posting unless explicitly requested;
+`pr-review-followup` is for auditing existing review feedback instead.
+
 ## Journal-Local Skills
 
 Some skills are specific to Dylan's journal vault and should remain project-local rather than user-global. Track those sources under:
