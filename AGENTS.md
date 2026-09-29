@@ -22,8 +22,21 @@ instruction files.
 - Confirm the intended branch and remote before pushing. Use a normal push;
   do not force-push, rewrite history, or include unrelated unpushed commits
   under this authorization.
-- If the destination is ambiguous or the push requires reconciling divergent
-  history, stop and ask rather than guessing or rewriting.
+- If the destination is ambiguous, stop and ask rather than guessing.
+- Before pushing, pull the confirmed remote branch with merge semantics
+  (`git pull --no-rebase --no-autostash <remote> <branch>`). If the remote has
+  new commits, integrate them by fast-forward or a normal merge; no separate
+  conversational permission is needed for a conflict-free merge. Do not rebase
+  or rewrite existing commits.
+- Before pulling, commit validated task-related changes and preserve unrelated
+  work. If remaining local changes prevent a safe pull, stop and ask; do not
+  automatically stash, discard, or commit unrelated changes.
+- If pulling or merging produces conflicts, stop immediately and report the
+  conflicted paths. Leave the conflict state intact for Dylan; do not resolve
+  conflicts, choose either side, abort the merge, or push without his direction.
+- After a conflict-free pull, review the integrated changes and rerun appropriate
+  validation before pushing. If the remote advances again and rejects the push,
+  repeat the pull-and-merge procedure, with the same conflict stop condition.
 - Filesystem/network tool approvals still apply. This permission does not
   authorize commits or pushes in other repositories.
 
