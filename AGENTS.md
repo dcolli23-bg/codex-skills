@@ -10,11 +10,11 @@ discovery symlinks, not a separate source repository.
 
 ## Commit and Push Authorization
 
-When Dylan requests creation or modification of a personal skill, that request
-also authorizes committing and pushing the task-related changes to this
-repository after appropriate validation. No separate conversational request
-to commit or push is required. This includes the skill's supporting scripts,
-tests, metadata, and relevant installation/instruction updates.
+When Dylan requests any change to this `code/codex-skills` repository, commit
+and push the task-related changes after appropriate validation. No separate
+conversational request to commit or push is required. This applies to every
+file in the repository, including skills, scripts, tests, metadata, and
+instruction files.
 
 - Honor any explicit instruction not to commit or push.
 - Review the working tree and staged diff; include only changes belonging to
