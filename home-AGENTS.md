@@ -32,13 +32,28 @@ Repositories that Dylan explicitly points to beneath `~/code/` are standalone cl
 
 This exception applies based on the explicitly requested repository path, even when its name or contents refer to GAI, UMI/SUMI, RAD P2, or another container-backed application.
 
-Before doing any work with containers or invoking a container-oriented skill, run:
+Direct remote work involving the `bil-cell-*` SSH hosts is completely exempt from
+the container host guard. Do not run the guard before `ssh`, `scp`, or related
+commands targeting a `bil-cell-*` host, regardless of what is being inspected or
+executed remotely. A previous guard failure does not prohibit subsequent work on
+these hosts.
+
+`kubectl` commands are completely exempt from the container host guard. Do not run
+the guard before any command invoked through `kubectl`, regardless of the cluster,
+context, namespace, resource, or subcommand (including `exec`). A previous guard
+failure does not prohibit subsequent `kubectl` work.
+
+Before doing any non-`kubectl` work with containers or invoking a
+container-oriented skill, run:
 
 ```bash
 ~/code/codex-skills/scripts/require-container-host.sh
 ```
 
-Run the guard before any other inspection or command for GAI, UMI/SUMI, RAD P2, or another container environment. If it fails, stop immediately and report its error. Do not inspect, enter, start, stop, build, test, or otherwise operate on containers from that host.
+Except for `kubectl`, run the guard before any other inspection or command for
+GAI, UMI/SUMI, RAD P2, or another container environment. If it fails, stop
+immediately and report its error. Do not inspect, enter, start, stop, build, test,
+or otherwise operate on containers from that host, except through `kubectl`.
 
 ## Personal Codex Skills
 
