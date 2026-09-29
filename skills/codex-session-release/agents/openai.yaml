@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Session Release"
+  short_description: "Release one locked Codex session and print resume command"
+  default_prompt: "Use $codex-session-release to find and stop the writer for the session I identify, then print the terminal command to resume it."

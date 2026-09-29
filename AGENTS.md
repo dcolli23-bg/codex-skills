@@ -66,6 +66,20 @@ ln -sfn ~/code/codex-skills/AGENTS.md ~/.codex/skills/AGENTS.md
 readlink -f ~/.codex/skills/AGENTS.md
 ```
 
+## Codex Session Release Installation
+
+The session-release skill lives in `skills/codex-session-release/`. Install it
+with the personal-skill symlink pattern:
+
+```bash
+ln -sfn ~/code/codex-skills/skills/codex-session-release ~/.codex/skills/codex-session-release
+readlink -f ~/.codex/skills/codex-session-release
+```
+
+Invoke `$codex-session-release` with a session UUID, rollout path, title, or
+active-writer error. It verifies and stops only the requested session's writer,
+then prints the terminal resume command; it does not launch another CLI.
+
 ## PR Review Follow-up Installation
 
 The PR feedback audit skill lives in `skills/pr-review-followup/`. Install it
