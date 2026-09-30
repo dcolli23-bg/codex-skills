@@ -196,6 +196,10 @@ ln -sfn ~/code/codex-skills/journal/AGENTS.md ~/journal/AGENTS.md
 
 ## Home Directory Instructions
 
+The installed `~/AGENTS.md` begins with a source and editing workflow note that
+points back to this repository and its validation, commit, and push requirements.
+Preserve that note and the symlink when updating the home instructions.
+
 The home instructions route BG GitHub, Jira, and Confluence reads through
 `bga-readonly`; install its symlink as described above alongside the
 organization-managed `bga-connections` skill so both the wrapper and its upstream
