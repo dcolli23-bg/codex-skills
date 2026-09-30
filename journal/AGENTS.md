@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## Source and Editing Workflow
+
+`~/journal/AGENTS.md` is installed as a symlink to `~/code/codex-skills/journal/AGENTS.md`. Before editing these instructions, read `~/code/codex-skills/AGENTS.md` and follow its repository workflow, including validation, committing, and pushing requested changes unless Dylan explicitly says otherwise. Edit the tracked source and preserve the symlink. This workflow applies to this instruction file; ordinary journal notes belong to the journal repository.
+
 ## Purpose
 
 This repository is an Obsidian-style work journal. Treat it as operational memory for Dylan's day-to-day engineering work, not as a conventional software repo. Most requests will involve reading, summarizing, organizing, or creating Markdown notes.

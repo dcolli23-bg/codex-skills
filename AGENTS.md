@@ -176,6 +176,11 @@ Use this pattern:
 ln -sfn ~/code/codex-skills/journal/skills/<skill-name> ~/journal/.codex/skills/<skill-name>
 ```
 
+The installed `~/journal/AGENTS.md` begins with a source and editing workflow note
+that points back to this repository and its validation, commit, and push
+requirements for that instruction file. Preserve that note and the symlink when
+updating the journal instructions.
+
 Track the journal vault instructions at:
 
 ```text
