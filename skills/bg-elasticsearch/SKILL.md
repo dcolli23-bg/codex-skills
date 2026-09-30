@@ -15,12 +15,18 @@ Read `references/instructions.md` before running Elasticsearch queries. Follow t
 2. Use `references/rad_bg_agents_es_cfg.json` as the default Elasticsearch target. It points at the RAD Billerica AutoStore logs alias.
 3. Use the customer, site, program name, and/or data type to find alternate Elasticsearch connection details from the CSV inventory only when the user explicitly asks for a different site/index.
 4. If the exact index or alias is still unknown after checking the CSV, ask the user for the connection details. Try search index patterns derived from the normalized customer and site names using patterns from the CSV inventory.
-5. Fetch credentials with `VaultElasticClient` when the workflow requires Vault-derived credentials.
+5. Prefer the `bga-readonly` skill's `elastic` command for queries through BG AI
+   Gateway. Discover the matching Elastic connection and inspect its permissions.
+   This route does not need a local Python environment or Vault-derived credentials.
 
-6. If host `python3` cannot import `bg_vault_elastic`, use the bundled helper script at `scripts/run_bg_vault_elastic_python.sh` for Python snippets that import it.
-7. Use the resolved `.es.` URL for Elasticsearch API calls. Do not use a Kibana `.kb.` URL as the Elasticsearch host.
+6. When the gateway route is unavailable for the requested site, use the direct
+   Vault workflow below and the helper at `scripts/run_bg_vault_elastic_python.sh`
+   for snippets importing `bg_vault_elastic`.
+7. For direct requests, use the resolved Elasticsearch URL, never the Kibana URL.
 
 ## Local Environment
+
+This setup is only for direct Vault/Elasticsearch access, not gateway queries.
 
 If `python3 -c 'import bg_vault_elastic'` fails, use the helper script from this skill directory:
 
@@ -262,8 +268,8 @@ print(r.json())
 
 When reporting results back to the user:
 
-- state the resolved Vault cluster name
-- state the resolved Elasticsearch `.es.` endpoint
+- state the gateway connection reference used, or the Vault cluster name for direct access
+- state the Elasticsearch endpoint when resolved; do not present a config URL as a verified gateway target
 - state the exact alias or index actually found
 - call out naming mismatches explicitly if the user used a business name that does not match the Elasticsearch token
 

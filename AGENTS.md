@@ -89,11 +89,18 @@ ln -sfn ~/code/codex-skills/skills/bga-readonly ~/.codex/skills/bga-readonly
 readlink -f ~/.codex/skills/bga-readonly
 ```
 
-Use `$bga-readonly` for provider GET requests and connection discovery. Invoke
+Use `$bga-readonly` for provider GET requests, connection discovery, and restricted
+Elasticsearch POST searches, counts, and field-capability queries. The `elastic`
+subcommand verifies the provider and enabled endpoint, accepts JSON query files,
+and supports complete response downloads with `--output`. Invoke
 `~/.codex/skills/bga-readonly/scripts/bga-readonly` directly so one persisted
 executable-prefix approval can cover changing UUIDs and endpoint paths. It
 delegates to the organization client without modifying it. Writes continue
 through the organization skill's normal authorization workflow.
+
+The `bg-elasticsearch` skill selects the site/index and uses this wrapper as its
+preferred query transport. Its local Python/Vault setup is a fallback for sites
+without an available gateway connection; it is not required for gateway queries.
 
 ## Codex Session Release Installation
 

@@ -3,8 +3,10 @@
 
 import argparse
 from contextlib import ExitStack
+import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -12,6 +14,7 @@ import uuid
 
 
 CLIENT = Path.home() / ".codex/skills/bga-connections/bga-connections"
+ELASTIC_OPERATIONS = {"search": "_search", "count": "_count", "field-caps": "_field_caps"}
 
 
 def connection_id(value):
@@ -37,17 +40,69 @@ def query_pair(value):
     return value
 
 
+def elastic_index(value):
+    """Accept index names/patterns, never URL syntax or extra path segments."""
+    if not re.fullmatch(r"[a-z0-9*][a-z0-9._*-]*(?:,[a-z0-9*][a-z0-9._*-]*)*", value):
+        raise argparse.ArgumentTypeError("index must be a name or comma-separated index patterns")
+    return value
+
+
+def elastic_body(args):
+    """Load one JSON object before making any gateway requests."""
+    text = args.body_file.read_text(encoding="utf-8") if args.body_file else args.body_text
+
+    def invalid_constant(value):
+        raise ValueError(f"invalid JSON constant: {value}")
+
+    body = json.loads(text, parse_constant=invalid_constant)
+    if not isinstance(body, dict):
+        raise ValueError("Elastic body must be a JSON object")
+    return json.dumps(body, ensure_ascii=True)
+
+
+def require_elastic_permission(connection, endpoint):
+    """Verify provider and read endpoint using the gateway's current permissions."""
+    result = subprocess.run(
+        [str(CLIENT), "permissions", connection], stdout=subprocess.PIPE, check=False,
+    )
+    if result.returncode:
+        raise ValueError("could not inspect Elastic connection permissions")
+    permissions = json.loads(result.stdout)
+    if permissions.get("platform") != "elastic" or permissions.get("callable") is not True:
+        raise ValueError("connection must be a callable Elastic provider")
+
+    def enabled_endpoint(entries):
+        for entry in entries:
+            if not entry.get("enabled", False) or entry.get("platformEnabled") is False:
+                continue
+            if entry.get("method") == "POST" and entry.get("path") == "/{index}/" + endpoint:
+                return True
+            if enabled_endpoint(entry.get("children", [])):
+                return True
+        return False
+
+    if not enabled_endpoint(permissions.get("permissions", [])):
+        raise ValueError(f"Elastic POST /{{index}}/{endpoint} is not enabled")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("list", "permissions", "get"):
+    for name in ("list", "permissions", "get", "elastic"):
         command = commands.add_parser(name, allow_abbrev=False)
         command.add_argument("--output", type=Path, help="save to a new file (no overwrite)")
         if name != "list":
             command.add_argument("connection", type=connection_id)
+        if name in ("get", "elastic"):
+            command.add_argument("--query", action="append", type=query_pair, default=[])
         if name == "get":
             command.add_argument("--path", required=True, type=provider_path)
-            command.add_argument("--query", action="append", type=query_pair, default=[])
+        if name == "elastic":
+            command.add_argument("--index", required=True, type=elastic_index)
+            command.add_argument("--operation", choices=ELASTIC_OPERATIONS, default="search")
+            body = command.add_mutually_exclusive_group(required=True)
+            body.add_argument("--body-file", type=Path, help="JSON query file")
+            body.add_argument("--body-text", help="inline JSON query object")
     args = parser.parse_args(argv)
 
     if args.output is not None and os.path.lexists(args.output):
@@ -57,7 +112,18 @@ def main(argv=None):
 
     # Never forward arbitrary options, accept a caller-selected executable, or use a shell.
     command = [str(CLIENT)]
-    if args.command == "get":
+    if args.command == "elastic":
+        try:
+            body = elastic_body(args)
+        except (OSError, ValueError) as exc:
+            parser.error(str(exc))
+        endpoint = ELASTIC_OPERATIONS[args.operation]
+        command += [
+            "call", args.connection, "--method", "POST",
+            f"--path=/{args.index}/{endpoint}", "--body-text=" + body,
+        ]
+        command += [f"--query={pair}" for pair in args.query]
+    elif args.command == "get":
         command += ["call", args.connection, "--method", "GET", f"--path={args.path}"]
         command += [f"--query={pair}" for pair in args.query]
     elif args.command == "permissions":
@@ -66,9 +132,11 @@ def main(argv=None):
         command += ["list"]
 
     try:
+        if args.command == "elastic":
+            require_elastic_permission(args.connection, endpoint)
         with ExitStack() as stack:
             download = None
-            if args.command == "get" and args.output is not None:
+            if args.command in ("get", "elastic") and args.output is not None:
                 directory = stack.enter_context(tempfile.TemporaryDirectory(prefix="bga-readonly-"))
                 download = Path(directory) / "response"
                 command[1] = "download"
@@ -88,7 +156,7 @@ def main(argv=None):
                 with os.fdopen(fd, "wb") as output:
                     output.write(data)
                 print(f"Saved response to {args.output}")
-    except OSError as exc:
+    except (OSError, ValueError) as exc:
         print(f"bga-readonly: {exc}", file=sys.stderr)
         return 1
     return 0
