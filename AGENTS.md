@@ -196,9 +196,10 @@ ln -sfn ~/code/codex-skills/journal/AGENTS.md ~/journal/AGENTS.md
 
 ## Home Directory Instructions
 
-The home instructions route BG GitHub reads through `bga-readonly`; install its
-symlink as described above alongside the organization-managed `bga-connections`
-skill so both the wrapper and its upstream client are available.
+The home instructions route BG GitHub, Jira, and Confluence reads through
+`bga-readonly`; install its symlink as described above alongside the
+organization-managed `bga-connections` skill so both the wrapper and its upstream
+client are available.
 
 Track home-directory-wide Codex instructions at:
 

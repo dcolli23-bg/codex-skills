@@ -17,13 +17,13 @@ Search `acronyms/` first. If a term remains unresolved, use the context availabl
 
 Do not treat standalone first names in `UNKNOWN_ACRONYMS.md` as blocking unless their identity is necessary for the task.
 
-## Berkshire Grey GitHub Access
+## Berkshire Grey GitHub, Jira, and Confluence Access
 
-For GitHub access involving Berkshire Grey repositories or Dylan's `dcolli23-bg` account, prefer BG AI Gateway over the general GitHub connector. Use the personal `bga-readonly` skill for connection discovery, permission inspection, and approved provider GET requests, including PR descriptions, reviews, comments, and files. Read its instructions and the organization-managed `bga-connections` skill's access guidance; the wrapper delegates to that client without modifying it.
+For GitHub access involving Berkshire Grey repositories or Dylan's `dcolli23-bg` account, and for Berkshire Grey Jira and Confluence access, prefer BG AI Gateway over the general GitHub or Atlassian connectors. Use the personal `bga-readonly` skill for connection discovery, permission inspection, and approved provider GET requests, including GitHub PR descriptions, reviews, comments, and files; Jira issues and comments; and Confluence pages and comments. Read its instructions and the organization-managed `bga-connections` skill's access guidance; the wrapper delegates to that client without modifying it.
 
 Invoke `/home/dcolli23/.codex/skills/bga-readonly/scripts/bga-readonly` directly. When network escalation is needed, suggest that executable alone as the reusable approval prefix, without a connection UUID or endpoint. Use `--output` to save complete responses instead of shell redirection, which can prevent prefix matching.
 
-Inspect the connection's permissions and try its approved read-only GitHub endpoints before concluding that a repository or PR review is inaccessible. If that route is unavailable or lacks access, report the specific limitation rather than assuming that a GitHub App installation grants effective access. For writes or operations the wrapper does not support, use `bga-connections` and follow its authorization requirements. Read-only approval does not authorize posting reviews, comments, or other changes.
+Inspect the relevant connection's permissions and try its approved read-only GitHub, Jira, or Confluence endpoints before concluding that a repository, PR review, Jira issue, or Confluence page is inaccessible. If that route is unavailable or lacks access, report the specific limitation rather than assuming that an app installation or connection grants effective access. For writes or operations the wrapper does not support, use `bga-connections` and follow its authorization requirements. Read-only approval does not authorize posting reviews, comments, or other changes.
 
 ## Container Skill Host Guard
 
