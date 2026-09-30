@@ -79,6 +79,22 @@ ln -sfn ~/code/codex-skills/AGENTS.md ~/.codex/skills/AGENTS.md
 readlink -f ~/.codex/skills/AGENTS.md
 ```
 
+## BGA Read-only Wrapper Installation
+
+The personal wrapper for the organization-managed `bga-connections` client lives
+in `skills/bga-readonly/`. Install it using the personal-skill symlink pattern:
+
+```bash
+ln -sfn ~/code/codex-skills/skills/bga-readonly ~/.codex/skills/bga-readonly
+readlink -f ~/.codex/skills/bga-readonly
+```
+
+Use `$bga-readonly` for provider GET requests and connection discovery. Invoke
+`~/.codex/skills/bga-readonly/scripts/bga-readonly` directly so one persisted
+executable-prefix approval can cover changing UUIDs and endpoint paths. It
+delegates to the organization client without modifying it. Writes continue
+through the organization skill's normal authorization workflow.
+
 ## Codex Session Release Installation
 
 The session-release skill lives in `skills/codex-session-release/`. Install it
