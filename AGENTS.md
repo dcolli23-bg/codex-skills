@@ -122,6 +122,8 @@ readlink -f ~/.codex/skills/pr-review-followup
 Invoke `$pr-review-followup` with a PR and desired scope. Audits are read-only
 unless posting is explicitly requested. Keep downloaded discussions, reply
 plans, and receipts outside this repository.
+Install `github-pr-comments` below as well; it owns the shared helper and
+posting workflow, including the compatibility `pr_review.py` entry point.
 
 ## BG PR Readiness Installation
 
@@ -136,6 +138,23 @@ readlink -f ~/.codex/skills/bg-pr-readiness
 Use `$bg-pr-readiness` for a fresh review of a BG PR or proposed change.
 It drafts findings without editing or posting unless explicitly requested;
 `pr-review-followup` is for auditing existing review feedback instead.
+Install `github-pr-comments` below for its shared posting workflow.
+
+## GitHub PR Comments Installation
+
+Both PR review skills use `skills/github-pr-comments/` for posting standalone
+PR discussion comments, inline review comments, replies, and review summaries.
+Every posted comment begins with `[codex]`.
+
+```bash
+ln -sfn ~/code/codex-skills/skills/github-pr-comments ~/.codex/skills/github-pr-comments
+readlink -f ~/.codex/skills/github-pr-comments
+```
+
+Use `$github-pr-comments` when posting is requested. The shared
+`scripts/pr_comments.py` helper retains discussion collection and reply-plan
+posting with preview, duplicate checks, and receipts; the old follow-up command
+delegates to it. Posting still requires explicit user authorization.
 
 ## Journal-Local Skills
 

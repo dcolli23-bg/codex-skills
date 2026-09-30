@@ -83,26 +83,15 @@ results and note coverage limitations.
 
 ## Explain addressed concerns
 
-Before writing, recheck the head and refresh comments to catch intervening
-changes or replies. Stop and reassess if the head changed.
+Use a short explanation: what changed, where/which commit, and any important
+limitation. Do not label partial or deferred work fixed. Reconfirm a prior
+"local-only" claim if the fix has since been pushed.
 
-- Prefix replies with `[codex]` unless the user chooses another prefix.
-- Use a short explanation: what changed, where/which commit, and any important
-  limitation. Do not label partial or deferred work fixed.
-- Reply to the root inline comment, not a reply-to-reply. For general PR
-  discussions, post a follow-up identifying the source comment(s); consolidate
-  closely related comments where that avoids noise.
-- Read existing replies to avoid semantic duplicates, not just exact copies.
-  A useful existing explanation can be left alone. Reconfirm a prior
-  "local-only" claim if the fix has since been pushed.
-- Verify each successful creation's ID, body, and intended thread. Keep a local
-  receipt. If a POST times out or returns an ambiguous response, check the
-  remote discussion before retrying; do not blindly repost.
-
-The helper supports a reviewed reply plan, read-only preview, exact-body
-deduplication, and an explicit `--apply` switch. Its pending receipts prevent
-automatic retries after uncertain writes. That switch is a safety mechanism,
-**not** a substitute for user authorization or runtime tool approval.
+When posting is requested, read and use the shared
+[github-pr-comments skill](../github-pr-comments/SKILL.md) for attribution,
+fresh head checks, target selection, duplicate handling, posting, and receipts.
+It owns the posting helper; the existing `scripts/pr_review.py` command remains
+a compatibility entry point. Keep the verified evidence in the reply plan.
 
 ## Deliver the closeout summary
 

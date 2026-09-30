@@ -5,13 +5,15 @@ from copy import deepcopy
 import importlib.util
 import json
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "pr_review.py"
-SPEC = importlib.util.spec_from_file_location("pr_review", SCRIPT)
+SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "pr_comments.py"
+SPEC = importlib.util.spec_from_file_location("pr_comments", SCRIPT)
 review = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(review)
 SHA = "a" * 40
@@ -232,6 +234,32 @@ class PostingTests(unittest.TestCase):
         with self.assertRaisesRegex(review.AuditError, "Duplicate"):
             review.post_plan(self.client, self.plan, self.receipts, apply=True)
         self.assertFalse(self.client.posts)
+
+    def test_prefix_required_for_every_standalone_and_reply_body(self):
+        for kind in ("inline", "issue"):
+            for body in ("Human comment", " [codex] Leading space", "[other] Text", "[codex]"):
+                with self.subTest(kind=kind, body=body):
+                    plan = make_plan()
+                    invalid = deepcopy(plan["replies"][0])
+                    invalid.update(kind=kind, body=body)
+                    if kind == "issue":
+                        del invalid["in_reply_to"]
+                    plan["replies"].append(invalid)
+                    with self.assertRaises(review.AuditError):
+                        review.post_plan(self.client, plan, self.receipts, apply=True)
+                    self.assertFalse(self.client.posts)
+
+    def test_both_entry_points_reject_prefix_override_before_network_access(self):
+        compatibility = SCRIPT.parents[2] / "pr-review-followup/scripts/pr_review.py"
+        for entry in (SCRIPT, compatibility):
+            with self.subTest(entry=entry):
+                result = subprocess.run(
+                    [sys.executable, "-B", str(entry), "post", "--plan", "unused.json",
+                     "--receipts", "unused.jsonl", "--prefix", "[human]"],
+                    text=True, capture_output=True,
+                )
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("unrecognized arguments: --prefix", result.stderr)
 
 
 if __name__ == "__main__":

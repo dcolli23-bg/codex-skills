@@ -58,6 +58,7 @@ merely because `bootstrap_default` appears in the code.
 - For a PR, separately note template completeness and any absent deployment
   or real-data test evidence. Keep the review concise and avoid counting
   multiple comments on one issue as separate findings.
-- Post or submit a review only on an explicit request, using the authorized
-  connection's posting rules and a fresh head check. Otherwise provide a
-  draft for Dylan to assess.
+- When posting is explicitly requested, read and use the shared
+  [github-pr-comments skill](../github-pr-comments/SKILL.md) for standalone
+  comments, inline comments, and submitted reviews. It owns attribution and
+  posting mechanics. Otherwise provide a draft for Dylan to assess.
