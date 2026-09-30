@@ -2,7 +2,7 @@
 
 ## Source and Editing Workflow
 
-`~/AGENTS.md` is installed as a symlink to `/home/dcolli23/code/codex-skills/home-AGENTS.md`. Before editing these instructions, read `/home/dcolli23/code/codex-skills/AGENTS.md` and follow its repository workflow, including validation, committing, and pushing requested changes unless Dylan explicitly says otherwise. Edit the tracked source and preserve the symlink.
+`~/AGENTS.md` is installed as a symlink to `~/code/codex-skills/home-AGENTS.md`. Before editing these instructions, read `~/code/codex-skills/AGENTS.md` and follow its repository workflow, including validation, committing, and pushing requested changes unless Dylan explicitly says otherwise. Edit the tracked source and preserve the symlink.
 
 ## Obsidian Journal Vault
 
