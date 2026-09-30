@@ -19,7 +19,11 @@ Do not treat standalone first names in `UNKNOWN_ACRONYMS.md` as blocking unless 
 
 ## Berkshire Grey GitHub Access
 
-For GitHub access involving Berkshire Grey repositories or Dylan's `dcolli23-bg` account, prefer the `bga-connections` skill and its BG AI Gateway connection over the general GitHub connector. Read the skill instructions, inspect the connection's permissions, and use its approved read-only GitHub endpoints before concluding that a repository or PR review is inaccessible. If that route is unavailable or lacks access, report the specific limitation rather than assuming that a GitHub App installation grants effective access. Follow the skill's explicit-request requirements before posting reviews or making other changes.
+For GitHub access involving Berkshire Grey repositories or Dylan's `dcolli23-bg` account, prefer BG AI Gateway over the general GitHub connector. Use the personal `bga-readonly` skill for connection discovery, permission inspection, and approved provider GET requests, including PR descriptions, reviews, comments, and files. Read its instructions and the organization-managed `bga-connections` skill's access guidance; the wrapper delegates to that client without modifying it.
+
+Invoke `/home/dcolli23/.codex/skills/bga-readonly/scripts/bga-readonly` directly. When network escalation is needed, suggest that executable alone as the reusable approval prefix, without a connection UUID or endpoint. Use `--output` to save complete responses instead of shell redirection, which can prevent prefix matching.
+
+Inspect the connection's permissions and try its approved read-only GitHub endpoints before concluding that a repository or PR review is inaccessible. If that route is unavailable or lacks access, report the specific limitation rather than assuming that a GitHub App installation grants effective access. For writes or operations the wrapper does not support, use `bga-connections` and follow its authorization requirements. Read-only approval does not authorize posting reviews, comments, or other changes.
 
 ## Container Skill Host Guard
 
