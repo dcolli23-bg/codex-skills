@@ -216,6 +216,9 @@ installer live in `journal/skills/journal-codex-session-logs/`. Systemd template
 live in `journal/systemd/`. Use that skill's `references/installation.md` and
 `SYSTEMD_JOURNAL_SUMMARY_JOBS.md` for installation on both machines and existing
 daily-job integration.
+As part of setup, enable Obsidian Sync's **Sync all other types** on both machines
+and verify that JSONL/JSON files arrive. The installation guide includes Remmina
+over an SSH tunnel for configuring the desktop's existing Obsidian session.
 Install with `scripts/install.py --device desktop` or `--device laptop` from the
 skill directory; add `--enable` only when deployment checks are complete. The
 installer exposes the skill through the normal journal-local symlink:
