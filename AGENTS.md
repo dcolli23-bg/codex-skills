@@ -143,6 +143,11 @@ readlink -f ~/.codex/skills/bg-pr-readiness
 ```
 
 Use `$bg-pr-readiness` for a fresh review of a BG PR or proposed change.
+Specify the container workflow to use, or retain an explicit selection already
+active in the conversation; the skill must ask rather than infer an environment.
+Additional source context follows `home-AGENTS.md`'s BG Source Context guidance,
+including the standalone `~/code/` exception and checkout revision checks in the
+review skill. These updates take effect through the existing symlinks.
 It drafts findings without editing or posting unless explicitly requested;
 `pr-review-followup` is for auditing existing review feedback instead.
 Install `github-pr-comments` below for its shared posting workflow.
@@ -247,7 +252,8 @@ Preserve that note and the symlink when updating the home instructions.
 The home instructions route BG GitHub, Jira, and Confluence reads through
 `bga-readonly`; install its symlink as described above alongside the
 organization-managed `bga-connections` skill so both the wrapper and its upstream
-client are available.
+client are available. For additional BG source and deployment context, they route
+to Dylan's explicitly selected Dorkspace workflow rather than GitHub source reads.
 
 Track home-directory-wide Codex instructions at:
 

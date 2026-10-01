@@ -29,6 +29,20 @@ Invoke `/home/dcolli23/.codex/skills/bga-readonly/scripts/bga-readonly` directly
 
 Inspect the relevant connection's permissions and try its approved read-only GitHub, Jira, or Confluence endpoints before concluding that a repository, PR review, Jira issue, or Confluence page is inaccessible. If that route is unavailable or lacks access, report the specific limitation rather than assuming that an app installation or connection grants effective access. For writes or operations the wrapper does not support, use `bga-connections` and follow its authorization requirements. Read-only approval does not authorize posting reviews, comments, or other changes.
 
+## BG Source Context
+
+When a BG task associated with a configured Dorkspace needs additional source
+code or deployment context, use the container workflow explicitly selected by
+Dylan. A still-active selection from earlier in the conversation applies; if
+none exists, ask which workflow to use. Do not infer it from repository names,
+changed files, products, or robot/system names.
+
+Follow that workflow for source access: read the host-mounted checkout and use
+the selected container for dependency and runtime inspection. Use GitHub for PR
+metadata, diffs, discussions, and checks. Do not substitute GitHub source reads
+for workspace context when the selected workflow is unavailable; report the
+limitation. The explicit standalone `~/code/` exception below still applies.
+
 ## Container Skill Host Guard
 
 Repositories that Dylan explicitly points to beneath `~/code/` are standalone clones for file inspection and small local commits. They are not associated with development containers. For work scoped to one of these repositories:
