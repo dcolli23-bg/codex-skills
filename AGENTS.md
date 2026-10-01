@@ -258,7 +258,8 @@ Install the shared skill alongside all three entry points; their relative links
 require it. The container workspace comes directly from `BG_ROOT`; system targets
 use the fixed `bg-processes` service, with no config field for either value.
 
-Expose and verify these skills using the tracked-source symlink pattern:
+Expose and verify these skills using the tracked-source symlink pattern. Edits
+to the tracked entry points take effect through these links without reinstalling:
 
 ```bash
 ln -sfn ~/code/codex-skills/skills/dorkspace-container ~/.codex/skills/dorkspace-container
