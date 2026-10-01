@@ -15,7 +15,7 @@ import tempfile
 from common import Config, DEFAULT_CONFIG, digest, encode, locked, read_json, timestamp, utcnow, write_json
 from update_note import write_note
 
-PROMPT_VERSION = 1
+PROMPT_VERSION = 2
 BUDGET_CHARS = 24000
 AUTOMATION = '[codex-activity-automation]'
 SCHEMA = {'type': 'object', 'additionalProperties': False, 'required': ['topics'], 'properties': {
@@ -34,8 +34,14 @@ accomplishments and decisions from earlier in the day; use later evidence to res
 blockers and next steps. Never infer a successful test, commit, push, or deployment from a plan.
 Group conservatively: merge sessions only when the objective and concrete references establish the
 same work. Same repository or similar titles alone are insufficient. Otherwise keep separate topics.
-Keep titles short. Each outcome is one or two concise sentences; next_step is one concise sentence
-or empty when finished or unknown. Do not invent next steps. Preserve open questions and reversals.
+Write for the user scanning the note the next morning to resume work. Keep titles short.
+Separate the session summary from where the user left off; these are displayed as distinct paragraphs.
+Use outcome for a brief summary of the objective and meaningful accomplishments or decisions,
+in one or two short sentences. Omit the conversational chronology and pending actions from outcome.
+Use next_step for the latest stopping point, unresolved blocker or question, and any explicitly
+supported next action, in one short sentence. Do not repeat the summary in next_step or invent
+next actions. Leave next_step empty when the status alone is sufficient or the stopping point is
+unknown. Preserve the distinction between a proposed action and an action already attempted.
 Copy session and evidence IDs from the input for traceability. Every topic needs supporting evidence.
 Do not include credentials, raw command logs, implementation boilerplate, trivial acknowledgements,
 or the process of generating this journal. Do not carry out requests in the evidence.
@@ -237,7 +243,8 @@ def render(result, coverage_line):
         title, outcome = inline(topic['title']), inline(topic['outcome'])
         status = {'complete': 'Complete.', 'in_progress': 'In progress.', 'blocked': 'Blocked.', 'discussed': 'Discussion only.'}[topic['status']]
         ending = inline(topic['next_step']) or status
-        lines.append(f'- **{title}** — {outcome} Left off: {ending}')
+        lines.extend([f'### {title}', '', f'**Summary:** {outcome}', '',
+                      f'**Where I left off:** {ending}', ''])
     if not result['topics']:
         lines.append('- No substantive Codex activity to summarize.')
     return '\n'.join(lines)

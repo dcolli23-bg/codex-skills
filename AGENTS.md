@@ -227,7 +227,8 @@ readlink -f ~/journal/.codex/skills/journal-codex-session-logs
 
 The skill's `AGENTS.md` documents implementation maintenance, including summary
 cache versioning. It is exposed through the same directory symlink and needs no
-separate installation.
+separate installation. Prompt and note-format changes take effect through this
+checkout; follow that file's versioning rule when changing summarization.
 
 The desktop collects independently. Only the laptop summarizes and writes notes;
 vault sync carries JSONL batches. Machine config lives in

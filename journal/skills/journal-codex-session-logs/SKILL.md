@@ -48,8 +48,10 @@ late synced activity triggers reconciliation again and queues the normal daily
 summary for the next daily job.
 
 Only replace the generated `## Codex Session Logs` block under
-`# Where I'm Leaving Off`. Keep concise topic bullets with outcomes and latest
-stopping points. Preserve other headings, frontmatter, links, manual notes, and
+`# Where I'm Leaving Off`. Give each topic a heading, a concise Summary paragraph,
+and a separate Where I left off paragraph with its latest stopping point and any
+supported next action. Avoid repeating information between those paragraphs.
+Preserve other headings, frontmatter, links, manual notes, and
 existing Daily Codex Summary/Jira Ticket Candidates sections. Missing daily notes
 are skipped; their activity is retained for a later run.
 
