@@ -61,6 +61,9 @@ also **blockers**. Check `setup.py`, `package.xml`, and tracked package symlinks
 together using the [Python packaging criteria](references/review-criteria.md#python-packaging-and-package-layout).
 Do not accept custom setup overrides as harmless boilerplate or defer correcting
 the affected package to a follow-on ticket unless Dylan explicitly allows it.
+Import-path manipulation in application code, scripts, or tests is likewise a
+**blocker**: require ordinary package imports through the standard `bg_build`
+setup instead of filesystem-based import workarounds.
 
 These are Dylan's proposed review standards, **not proof that every existing
 BG repository already follows them**. Apply them to new or changed BG-owned

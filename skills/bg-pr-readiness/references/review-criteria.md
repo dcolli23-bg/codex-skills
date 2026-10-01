@@ -35,6 +35,30 @@ assertions when the runtime path or team convention has not been verified.
   revision. Do not retain `find_packages("src")` or `package_dir` overrides
   to compensate for a missing symlink, and do not recommend deleting those
   overrides without supplying the discoverable layout.
+- **Blocking requirement: no import-path manipulation.** Application code,
+  scripts, tests, and `conftest.py` must import modules through the correctly
+  configured package and required `bg_build` setup. Disallow `sys.path`
+  insertion, appending, extension, or reassignment, and manually extending
+  `PYTHONPATH` to reach checkout, `src/`, or `scripts/` directories. Constructing
+  import paths from `__file__`, parent-directory traversal, the working
+  directory, or hard-coded filesystem locations is a packaging workaround,
+  not an acceptable test or runtime convenience. For example, flag this:
+
+  ```python
+  module_path = Path(__file__).resolve().parents[1] / "scripts" / "episode_to_mcap.py"
+  sys.path.insert(0, str(module_path.parent))
+  ```
+
+  Also reject loading the constructed path with
+  `importlib.util.spec_from_file_location`, `SourceFileLoader`, or
+  `runpy.run_path` as a substitute for a normal package import. A different
+  filesystem loader does not fix the packaging issue.
+- Request the actual packaging fix: put reusable implementation in importable
+  package modules, keep executable scripts as thin entry points, declare the
+  dependencies, and use ordinary imports from application code and tests.
+  Validate in the normally built/installed and sourced BG environment without
+  an extra import-path workaround. Ordinary paths for data/resources and the
+  standard generated environment setup are outside this import-specific rule.
 - Declare runtime, build, and test dependencies in `package.xml`, including
   `<buildtool_depend>bg_build</buildtool_depend>` for the helper import and
   the appropriate test dependencies. Use valid dependency keys; do not copy

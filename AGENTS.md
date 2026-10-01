@@ -159,7 +159,9 @@ affected production paths is a blocking finding. These review rules take effect
 through the existing symlinks. Nonstandard `setup.py` customization or Python
 package discovery layout in added or modified BG-owned packages is also blocking;
 the skill documents the minimal BG helper invocation, source symlink convention,
-and dependency declarations in `package.xml`.
+and dependency declarations in `package.xml`. Import-path manipulation in
+application code, scripts, or tests is also blocking; require normal package
+imports through `bg_build` instead of `sys.path` or filesystem-loader workarounds.
 It drafts findings without editing or posting unless explicitly requested;
 `pr-review-followup` is for auditing existing review feedback instead.
 Install `github-pr-comments` below for its shared posting workflow.
