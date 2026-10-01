@@ -1,6 +1,7 @@
 # Summarization performance improvements
 
-Recorded 2026-10-01. These are proposed experiments, not implemented changes.
+Recorded 2026-10-01. Proposed experiments and measured results are tracked below;
+completed experiments do not imply a production setting change.
 
 ## Measured baseline
 
@@ -27,7 +28,7 @@ build on that implementation.
 
 ## Proposed improvements, in priority order
 
-- [ ] **Compare Luna medium reasoning with High.** Use exactly the same cached
+- [x] **Compare Luna medium reasoning with High (single-run prototype).** Use exactly the same cached
   inputs and synthesis prompt. Measure latency, input/output/reasoning tokens,
   and quality: factual accuracy, conservative topic grouping, distinction between
   plans and completed work, and useful stopping points. Keep the production
@@ -54,12 +55,52 @@ build on that implementation.
   reduce token cost. Preserve the shared call budget, completed-result caching,
   failure handling, and single-writer behavior.
 
-## Next experiment
+## Luna medium comparison — 2026-10-01
 
-Run only the single-session synthesis at medium reasoning and compare it with
-the High result above. Save previews and metrics outside the real journal.
-Avoid full-pipeline runs while prototyping speed improvements. Then evaluate
-the direct single-call path for small sessions.
+Used the same five cached chunk summaries, synthesis prompt, and output schema
+as the High baseline. No chunk calls were rerun. Prompt: 7,773 characters;
+schema: 540 characters; both runs reported 6,813 input tokens and zero cached
+input tokens. The current prompt version was 3.
+
+| Metric | High | Medium |
+| --- | ---: | ---: |
+| Synthesis time | 18.23 s | 15.07 s |
+| Model calls | 1 | 1 |
+| Output tokens, including reasoning | 2,254 | 1,624 |
+| Reasoning tokens | 1,689 | 996 |
+| Other output tokens | 565 | 628 |
+| Rendered topics | 6 | 8 |
+
+Medium was 3.16 seconds (17%) faster and used 41% fewer reasoning tokens in this
+comparison. It retained the main subjects but separated the desktop collector
+and installation-guide work into additional topics. Both outputs retained the
+inconsistency where a reported idle-lock configuration change ended with
+“Discussion only.” Both reflected the session's incomplete view of later laptop
+work. This experiment did not establish a general latency improvement or resolve
+those quality issues.
+
+Decision: leave production at High for now. Medium is a plausible speed option,
+but the extra topics may work against the desired concise morning recap. One run
+per setting is insufficient to separate reasoning effects from service latency
+and output variability.
+
+Prototype artifacts (local temporary files):
+
+- High: `/tmp/codex-largest-session-prototype/`.
+- Medium: `/tmp/codex-largest-session-medium/`, including input snapshot,
+  preview, result, metrics, and token usage.
+- Input digest: `c9da995f251766184286145aff1fa0ad210ffb30822646b540e86450123ba812`.
+- Prompt digest: `f52155fd31f8030cf55bc8bc2b7feef4c5adc42e240ed1bfaf9bd43b15e43c95`.
+
+The real journal was unchanged. Summary timers remained paused for prototyping.
+
+## Next experiments
+
+Evaluate the direct single-call path for small sessions. If considering a
+production reasoning change, repeat the paired synthesis comparison on fixed
+inputs and review quality before choosing a default. Save previews and metrics
+outside the real journal; avoid full-pipeline runs while prototyping speed
+improvements.
 
 For each experiment, record the implementation/prompt version, input snapshot,
 cache reuse, reasoning setting, call count, stage timings, token usage, quality
