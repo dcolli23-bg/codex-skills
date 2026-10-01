@@ -8,6 +8,13 @@ The source repository is `/home/dcolli23/code/codex-skills`. These instructions
 are also exposed at `~/.codex/skills/AGENTS.md`; that directory contains skill
 discovery symlinks, not a separate source repository.
 
+## Workflow Wishlist
+
+Dylan's feature wishlist lives in the journal at
+[Agentic Workflow Wishlist](</home/dcolli23/journal/ideas/Agentic Workflow Wishlist.md>).
+Consult that note when Dylan references the workflow wishlist during a feature
+request. Keep wishlist entries in the journal; this is only a pointer to them.
+
 ## Commit and Push Authorization
 
 When Dylan requests any change to this `code/codex-skills` repository, commit
@@ -143,6 +150,16 @@ readlink -f ~/.codex/skills/bg-pr-readiness
 ```
 
 Use `$bg-pr-readiness` for a fresh review of a BG PR or proposed change.
+Specify the container workflow to use, or retain an explicit selection already
+active in the conversation; the skill must ask rather than infer an environment.
+Additional source context follows `home-AGENTS.md`'s BG Source Context guidance,
+including the standalone `~/code/` exception and checkout revision checks in the
+review skill. Missing BG bootstrapping or the required Python/C++ logger on
+affected production paths is a blocking finding. These review rules take effect
+through the existing symlinks. Nonstandard `setup.py` customization or Python
+package discovery layout in added or modified BG-owned packages is also blocking;
+the skill documents the minimal BG helper invocation, source symlink convention,
+and dependency declarations in `package.xml`.
 It drafts findings without editing or posting unless explicitly requested;
 `pr-review-followup` is for auditing existing review feedback instead.
 Install `github-pr-comments` below for its shared posting workflow.
@@ -152,9 +169,14 @@ Install `github-pr-comments` below for its shared posting workflow.
 Both PR review skills use `skills/github-pr-comments/` for posting standalone
 PR discussion comments, inline review comments, replies, and review summaries.
 Every posted comment begins with `[codex]`.
-Default to one submitted review per PR posting batch, grouping inline findings
-and general feedback to reduce notifications. Standalone comments and existing
-thread replies remain available when explicitly requested.
+Default to one pending review per PR posting batch, grouping inline findings
+and general feedback for Dylan to inspect and submit manually in GitHub. Omit
+the review creation `event`; submission requires an explicit request.
+Standalone comments and existing thread replies remain available when explicitly
+requested. This default is maintained in the shared skill and takes effect
+through its existing symlink; the optional helper still only posts standalone
+comments and replies. The shared skill also requires Markdown backticks around
+inline code in comments, replies, and review summaries.
 
 ```bash
 ln -sfn ~/code/codex-skills/skills/github-pr-comments ~/.codex/skills/github-pr-comments
@@ -254,7 +276,8 @@ Preserve that note and the symlink when updating the home instructions.
 The home instructions route BG GitHub, Jira, and Confluence reads through
 `bga-readonly`; install its symlink as described above alongside the
 organization-managed `bga-connections` skill so both the wrapper and its upstream
-client are available.
+client are available. For additional BG source and deployment context, they route
+to Dylan's explicitly selected Dorkspace workflow rather than GitHub source reads.
 
 Track home-directory-wide Codex instructions at:
 
