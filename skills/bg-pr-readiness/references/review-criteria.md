@@ -29,6 +29,13 @@ assertions when the runtime path or team convention has not been verified.
 
 ## Bootstrap and operational logging
 
+- **Blocking requirement:** BG-owned production paths affected by the PR must
+  use appropriate BG bootstrapping (`bg_bootstrap`) and Python's standard
+  `logging` logger or the C++ `bg_logging` logger, as applicable. Report verified
+  non-adherence as a **blocker** and request correction before merge. Do not
+  downgrade it to a nit or optional follow-up because the noncompliant helper
+  predates the PR when new functionality relies on that helper. Keep unrelated
+  legacy code outside the review's scope.
 - Find the *actual process entry point*. Determine whether it invokes an
   appropriate BG bootstrap path (such as `bootstrap_default`) and which
   logging handlers it enables. `bootstrap_default` may use

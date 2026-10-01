@@ -154,7 +154,9 @@ Specify the container workflow to use, or retain an explicit selection already
 active in the conversation; the skill must ask rather than infer an environment.
 Additional source context follows `home-AGENTS.md`'s BG Source Context guidance,
 including the standalone `~/code/` exception and checkout revision checks in the
-review skill. These updates take effect through the existing symlinks.
+review skill. Missing BG bootstrapping or the required Python/C++ logger on
+affected production paths is a blocking finding. These review rules take effect
+through the existing symlinks.
 It drafts findings without editing or posting unless explicitly requested;
 `pr-review-followup` is for auditing existing review feedback instead.
 Install `github-pr-comments` below for its shared posting workflow.

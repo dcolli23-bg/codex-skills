@@ -48,6 +48,13 @@ that misses operational sinks, tests that do not protect behavior, and a PR
 description that ignores its repository's template. Also check useful
 docstrings, redundant configuration or code, and accidental scratch files.
 
+For BG-owned production paths affected by the PR, missing appropriate BG
+bootstrapping (`bg_bootstrap`, such as `bootstrap_default`) or failure to use
+Python's standard `logging` logger or the C++ `bg_logging` logger is a
+**blocker**, not a non-blocking logging improvement. Trace the actual startup
+and logging path before concluding that a requirement is unmet. An existing
+noncompliant helper does not exempt new functionality that relies on it.
+
 These are Dylan's proposed review standards, **not proof that every existing
 BG repository already follows them**. Apply them to new or changed BG-owned
 code; identify legacy or third-party exceptions and separately scoped
