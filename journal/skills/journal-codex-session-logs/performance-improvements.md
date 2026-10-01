@@ -141,6 +141,62 @@ Chunking therefore supports incremental work, bounded requests, and resuming
 cached stages. Direct whole-session summaries would reread the entire session on
 each changed input unless a separate incremental strategy were introduced.
 
+## Full-day run with verified device coverage — 2026-10-01
+
+Ran the production chunk-and-synthesis path for September 30 using Luna High,
+with prompt version 4 at code commit `1980a98`. Collected on both machines first;
+both collectors reported zero errors and shared the same collector source hash.
+The desktop had no new records; the laptop collector published four new records
+across its scanned days. Verified every September 30 batch against its source
+machine's SHA-256: 27 of 27 matched on the laptop.
+
+Input: 396 collected records across 12 sessions; 195 eligible user/final-response
+records (166 desktop, 29 laptop), totaling 138,819 characters of message text.
+The filtered inputs formed 16 chunks. This run reused no summary artifacts for
+its current prompt/version and reconciliation mode.
+
+| Phase | Measured time |
+| --- | ---: |
+| Laptop collection | 0.062 s |
+| Desktop collection | 0.013 s |
+| 16 chunk stages | 199.863 s |
+| Daily synthesis | 37.978 s |
+| Summary pipeline total | 237.894 s |
+| Unchanged-day replay | 0.018 s |
+
+The 17 successful model calls accounted for nearly all pipeline time. Chunk calls
+ranged from 5.18 to 29.72 seconds. Usage totaled 138,381 input tokens and 19,763
+output tokens, including 14,373 reasoning tokens; the provider reported zero
+cached input tokens. The subsequent unchanged-day replay made zero model calls
+and left the note unchanged.
+
+The output contains 20 topics with separate Summary and Where I left off
+paragraphs. It updated only the September 30 daily note's generated section;
+manual content and surrounding sections were verified unchanged. Full-day
+synthesis recognized that laptop deployment completed, but still includes some
+redundant scheduling topics and the idle-lock “Discussion only” inconsistency.
+September 30 stopping points do not incorporate work done on October 1.
+
+Durable laptop artifacts:
+`~/.local/state/codex-activity/benchmarks/2026-09-30-full-day-20261001/`.
+
+- `report.txt` and `summary.json`: aggregate timings, coverage, and token totals.
+- `model-calls.csv`: each call's time, source sessions, input/schema sizes, and tokens.
+- `stages.csv` and `events.jsonl`: cache status and chronological stage timings.
+- `timings.json`: complete results and implementation metadata.
+- `laptop-collection.json`, `desktop-collection.json`, and
+  `batch-verification.json`: collection timings and batch hash manifests.
+- `inputs/`: immutable source-batch snapshot for reproducing this test.
+- `note-before.md`, `note-after.md`, and `session-logs.md`: output and preservation evidence.
+- `unchanged-replay.json`: warm replay verification.
+- Profiling scripts are retained in the same directory.
+
+Timings use monotonic wall clocks. Model-call timings include CLI/provider
+startup and transport; they are not isolated inference measurements. Collection
+and summary times are recorded separately, excluding SSH setup, interactive
+approvals, and benchmark preparation. Nested stage and model durations overlap.
+The scheduled summary timers remained paused; this was a manual full-day run.
+
 ## Next experiments
 
 ### Implemented input filter — 2026-10-01
