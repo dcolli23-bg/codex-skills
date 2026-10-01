@@ -94,6 +94,53 @@ Prototype artifacts (local temporary files):
 
 The real journal was unchanged. Summary timers remained paused for prototyping.
 
+## Direct largest-session summary — 2026-10-01
+
+Sent the largest filtered September 30 session directly to Luna High using prompt
+version 4, without chunk summarization or synthesis. Input contained 69 user
+messages/assistant final responses and 45,346 characters of message text. The
+complete prompt was 57,115 characters and its schema was 888 characters.
+
+- One call took **39.78 seconds**.
+- Usage: 19,063 input tokens; 4,313 output tokens including 3,814 reasoning tokens.
+- Output contained three topics: container workflow refactor, Obsidian summary
+  scheduling, and Codex activity journaling.
+- It was more consolidated than the earlier six/eight-topic synthesis outputs,
+  but omitted the desktop idle-lock topic. The session-local laptop-deployment
+  stopping point still lacks later evidence from another session.
+
+This does not establish a speed advantage over chunking. The earlier 44.22-second
+prototype included two new chunk calls plus synthesis, reused three cached
+chunks, and used the broader evidence set before commentary filtering. A fresh
+chunked run on the same filtered input has not been timed. Do not equate this
+39.78-second full-session call with the earlier 18.23-second synthesis-only call.
+
+No production architecture or model setting changed. Artifacts are under
+`/tmp/codex-direct-session-prototype/`, including input, output, preview, timing,
+and usage. Input digest:
+`ae8c9ea61bec5e026b8543467237aabd01b154a6c9f95ab666b34ec0db86a4dc`.
+The real journal was unchanged; summary timers remain paused for prototyping.
+
+### Current cache behavior
+
+- Chunk artifacts are keyed by exact input records, prompt version, model,
+  reasoning setting, and stage/mode. Unchanged chunks are reused.
+- Appended messages usually change only the open tail chunk or start a new chunk;
+  earlier full chunks retain their cache keys. Inserting late records earlier in
+  a session can change subsequent chunk boundaries and invalidate more chunks.
+- Any changed chunk-summary input invalidates the full-day synthesis result.
+  That synthesis still consumes summaries for the whole day and can grow slower.
+- The first closed-day reconciliation switches the chunk prompt/mode, causing a
+  fresh pass even when the source messages have not changed. Later reconciliations
+  with identical inputs reuse those reconciliation artifacts.
+- Prompt/model/reasoning changes invalidate affected cached results. Even a cache
+  hit still requires loading/hashing evidence locally, although it makes no model
+  call. Commentary-only additions do not invalidate summary input.
+
+Chunking therefore supports incremental work, bounded requests, and resuming
+cached stages. Direct whole-session summaries would reread the entire session on
+each changed input unless a separate incremental strategy were introduced.
+
 ## Next experiments
 
 ### Implemented input filter — 2026-10-01
