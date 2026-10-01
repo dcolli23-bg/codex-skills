@@ -27,6 +27,13 @@ full evidence IDs and derived session IDs before saving an artifact. Synthesis
 citations inherit the evidence of their selected chunk topics; they do not imply
 that each inherited message independently supports every sentence.
 
+Only records with `user:*`, `assistant:final`, or `assistant:final_answer` kinds
+are used for summaries. Commentary, tool outcomes, interruption events, and
+assistant messages without an explicit final phase remain in source batches but
+are excluded before chunking and rendered-day cache hashing. Excluded activity
+alone does not trigger model calls. Conclusions reflect what the user and final
+responses report; the model does not independently verify omitted tool results.
+
 The model receives short session labels for grouping, timestamps, message kinds,
 text, and a compact directory-context lookup. Collector schema, device, day, byte
 offsets, and full IDs stay outside its input. Synthesis receives topic prose,

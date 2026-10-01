@@ -96,6 +96,21 @@ The real journal was unchanged. Summary timers remained paused for prototyping.
 
 ## Next experiments
 
+### Implemented input filter — 2026-10-01
+
+At Dylan's request, prompt version 4 uses only user messages and explicitly
+marked assistant final responses. Commentary, tool outcomes, and interruption
+events remain collected but do not enter model input or summary cache hashes.
+All 26 tests passed, including exclusion and cache-invalidation behavior.
+
+With the same September 30 evidence, the largest session drops from 116 to 69
+records and five to three chunks; its compact payload drops from 70,254 to
+54,828 characters. Across the day, chunks drop from 21 to 16 and message text
+from 176,748 to 138,819 characters. These are offline input measurements; no
+new Luna latency or output-quality comparison has been run for this filter.
+
+### Candidates
+
 Evaluate the direct single-call path for small sessions. If considering a
 production reasoning change, repeat the paired synthesis comparison on fixed
 inputs and review quality before choosing a default. Save previews and metrics

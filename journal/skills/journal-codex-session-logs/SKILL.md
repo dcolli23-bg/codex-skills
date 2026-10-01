@@ -34,6 +34,11 @@ Do not run these commands recursively from the model summarization prompt or whe
 
 ## Summary behavior
 
+Summarize only user messages and explicitly marked assistant final responses.
+Exclude progress commentary, tool outcomes, and interruption events from model
+input. Filter before chunking and cache hashing so excluded activity alone does
+not trigger new model calls. Collected source batches remain intact.
+
 The scripts invoke `gpt-6-luna` with `high` reasoning for new evidence chunks and
 full-day synthesis. Keep grouping conservative: a shared repository or similar
 session title is insufficient to merge separate objectives. Include non-code

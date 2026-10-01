@@ -234,6 +234,8 @@ separate installation. Prompt and note-format changes take effect through this
 checkout; follow that file's versioning rule when changing summarization.
 Compact model references are expanded to full IDs in saved artifacts. They use
 the same installation and config; no separate reference store is required.
+Model input is limited to user messages and assistant final responses; this
+filter runs in the summarizer and requires no collector or installation changes.
 Proposed latency experiments are tracked in the skill's
 `performance-improvements.md`, also exposed through its existing symlink.
 

@@ -352,5 +352,54 @@ class ActivityTest(unittest.TestCase):
         self.assertTrue(self.calls[-1][0].startswith('Synthesize'))
 
 
+    def test_only_user_messages_and_explicit_finals_reach_model(self):
+        self.message('Fix the parser')
+        self.message('Implemented the parser', 'assistant')
+        collect.collect(self.config)
+        records = self.records()
+        omitted = [dict(records[1], id=f'excluded-{i}', kind=kind, text=f'OMIT-{kind}')
+                   for i, kind in enumerate(['assistant:commentary', 'assistant:message',
+                                             'tool_outcome', 'interrupted'])]
+        final = dict(records[1], id='alternate-final', kind='assistant:final')
+        all_records = records + omitted + [final]
+        payload, sources = summarize.prepare_model_input(all_records)
+        self.assertEqual([x['text'] for x in payload['items']],
+                         ['Fix the parser', 'Implemented the parser', 'Implemented the parser'])
+        self.assertEqual({e for source in sources.values() for e in source['evidence']},
+                         {r['id'] for r in records + [final]})
+        summarize.build_summary(self.config, '2026-09-30', all_records, self.model)
+        raw_calls = [items for mode, items in self.calls if mode.startswith('Summarize')]
+        self.assertEqual(len(raw_calls), 1)
+        self.assertEqual(raw_calls[0], records + [final])
+
+    def test_excluded_activity_does_not_invalidate_summary(self):
+        self.message('Fix the parser')
+        collect.collect(self.config)
+        note = self.vault / 'daily/2026-09-30.md'
+        note.write_text('Manual note')
+        summarize.run(self.config, model=self.model)
+        count = len(self.calls)
+        self.add('response_item', {'type': 'message', 'role': 'assistant', 'phase': 'commentary',
+                                  'content': [{'type': 'output_text', 'text': 'Running checks'}]})
+        self.add('response_item', {'type': 'function_call_output', 'output': '12 passed'})
+        self.add('event_msg', {'type': 'turn_aborted'})
+        collect.collect(self.config)
+        self.assertEqual(len(self.records()), 4)
+        summarize.run(self.config, model=self.model)
+        self.assertEqual(len(self.calls), count)
+        self.message('Implemented parsing; tests passed', 'assistant')
+        collect.collect(self.config)
+        summarize.run(self.config, model=self.model)
+        self.assertGreater(len(self.calls), count)
+
+    def test_excluded_only_input_makes_no_model_call(self):
+        model = summarize.CodexModel(self.config)
+        with patch.object(summarize.subprocess, 'Popen') as process:
+            result = model('Summarize', [{'kind': 'assistant:commentary', 'text': 'Checking'}])
+        self.assertEqual(result, {'topics': []})
+        self.assertEqual(model.calls, 0)
+        process.assert_not_called()
+
+
 if __name__ == '__main__':
     unittest.main()
