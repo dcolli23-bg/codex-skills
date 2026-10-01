@@ -20,6 +20,14 @@ review, prefix **each** entry in `comments[]` as well as any summary body;
 prefixing only the summary is insufficient. Preserve an existing leading `[codex]` rather than
 adding it twice. Do not change historical comments merely to add attribution.
 
+## Markdown formatting
+
+Wrap inline code in Markdown backticks so it renders correctly in GitHub.
+Apply this to identifiers, function calls, parameter names, paths, commands,
+and short code expressions in comments, replies, and review summaries, for
+example `verify_mcap()`, `chunk_size_bytes`, and `event: "COMMENT"`. Preserve
+the literal backticks in the body sent to GitHub; do not escape them as prose.
+
 ## Posting workflow
 
 Use the invoking review skill's verified findings or reply plan as the content;

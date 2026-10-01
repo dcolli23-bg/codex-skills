@@ -170,7 +170,8 @@ the review creation `event`; submission requires an explicit request.
 Standalone comments and existing thread replies remain available when explicitly
 requested. This default is maintained in the shared skill and takes effect
 through its existing symlink; the optional helper still only posts standalone
-comments and replies.
+comments and replies. The shared skill also requires Markdown backticks around
+inline code in comments, replies, and review summaries.
 
 ```bash
 ln -sfn ~/code/codex-skills/skills/github-pr-comments ~/.codex/skills/github-pr-comments
