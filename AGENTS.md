@@ -209,6 +209,27 @@ using:
 ln -sfn ~/code/codex-skills/journal/AGENTS.md ~/journal/AGENTS.md
 ```
 
+## Journal Codex Activity Installation
+
+The stdlib-only collector, Luna summary pipeline, note writer, tests, and machine
+installer live in `journal/skills/journal-codex-session-logs/`. Systemd templates
+live in `journal/systemd/`. Use that skill's `references/laptop-handoff.md` and
+`SYSTEMD_JOURNAL_SUMMARY_JOBS.md` for deployment and existing daily-job integration.
+Install with `scripts/install.py --device desktop` or `--device laptop` from the
+skill directory; add `--enable` only when deployment checks are complete. The
+installer exposes the skill through the normal journal-local symlink:
+
+```bash
+ln -sfn ~/code/codex-skills/journal/skills/journal-codex-session-logs ~/journal/.codex/skills/journal-codex-session-logs
+readlink -f ~/journal/.codex/skills/journal-codex-session-logs
+```
+
+The desktop collects independently. Only the laptop summarizes and writes notes;
+vault sync carries JSONL batches. Machine config lives in
+`~/.config/codex-activity/config.json`, and checkpoints/locks live in
+`~/.local/state/codex-activity/`. Keep both outside Git. Use `python3 -m unittest
+discover -s journal/skills/journal-codex-session-logs/tests -v` for validation.
+
 ## Home Directory Instructions
 
 The installed `~/AGENTS.md` begins with a source and editing workflow note that

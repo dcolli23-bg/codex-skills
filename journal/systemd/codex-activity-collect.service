@@ -1,0 +1,8 @@
+[Unit]
+Description=Collect local Codex activity into immutable journal batches
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 %h/code/codex-skills/journal/skills/journal-codex-session-logs/scripts/collect.py
+TimeoutStartSec=10min
+UMask=0077

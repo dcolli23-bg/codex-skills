@@ -1,0 +1,9 @@
+[Unit]
+Description=Summarize Codex activity and update journal session logs on laptop
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/environment.d/bg-ai-gateway.conf
+ExecStart=/usr/bin/python3 %h/code/codex-skills/journal/skills/journal-codex-session-logs/scripts/summarize.py
+TimeoutStartSec=2h
+UMask=0077

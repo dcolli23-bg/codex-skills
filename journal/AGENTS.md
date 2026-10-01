@@ -15,6 +15,7 @@ This repository is an Obsidian-style work journal. Treat it as operational memor
   - `Focus Time/`: implementation, debugging, testing, planning.
   - `Meetings/`, `Stand Ups/`, `Interviews/`, `Lunch/`: meeting and calendar-derived notes.
 - `weekly/weekly-summary-YYYY-MM-DD.md`: weekly summaries. The date is the Monday of the summarized week.
+- `codex-activity/`: immutable filtered session-evidence batches from laptop and desktop, plus source-linked summary artifacts. Read the journal-codex-session-logs skill before maintaining this data; do not edit batches in place or bulk-load them for ordinary journal summaries. The laptop is the only scheduled daily-note writer.
 - `tasks/`: project/task notes, especially AutoStore, Skild/RFM, Generalist, camera investigations, MF IS pipeline, etc.
 - `acronyms/`: lightweight glossary notes for Dylan's recurring acronyms, shorthand, people abbreviations, and domain terms.
 - `UNKNOWN_ACRONYMS.md`: unresolved acronym, shorthand, person, product, site, or domain-term questions that need Dylan's clarification.
@@ -72,6 +73,13 @@ When summarizing, prefer concrete outcomes over chronology:
 - hiring/interview work when it consumed meaningful time
 
 Do not summarize sensitive details more specifically than needed.
+
+Daily notes may contain `## Codex Session Logs`, maintained by the laptop's
+journal-codex-session-logs workflow. Use it as a source with its stated coverage,
+preserve its generated block when editing other sections, and distinguish
+discussed plans from implemented outcomes. The ordinary daily-summary job refreshes
+this section before combining it with Slack and journal notes. Weekly summaries
+can consume it through the daily notes without opening every activity batch.
 
 ## Editing Rules
 

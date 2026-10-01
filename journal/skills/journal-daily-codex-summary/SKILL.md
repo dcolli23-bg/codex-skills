@@ -1,13 +1,13 @@
 ---
 name: journal-daily-codex-summary
-description: Summarize a workday by reading the user's Slack messages for that date, combining them with the matching `daily/YYYY-MM-DD.md` note and its linked/transcluded calendar notes, then writing or replacing `## Daily Codex Summary` and `## Jira Ticket Candidates` subsections under `# Where I'm Leaving Off`. Use when the user asks to create, update, regenerate, or write a daily Codex summary or daily Jira ticket candidates from Slack plus journal notes.
+description: Summarize a workday from Slack, journal notes, and collected Codex session activity, then write or replace Daily Codex Summary and Jira Ticket Candidates under Where I'm Leaving Off. Use when the user asks to create, update, or regenerate a daily summary or daily Jira ticket candidates.
 ---
 
 # Journal Daily Codex Summary
 
 ## Overview
 
-Create a compact daily summary from two sources: the user's Slack activity for the day and the journal's daily note plus its directly linked/transcluded notes. Write the result into the daily note under `# Where I'm Leaving Off` as `## Daily Codex Summary`, then use the same synthesized context to write `## Jira Ticket Candidates`. The `## Jira Ticket Candidates` section is a Codex-generated suggestion list only; it must not be treated as accepted or planned Jira work without further supporting context or explicit user/team confirmation.
+Create a compact daily summary from the user's Slack activity, the journal's daily note and directly linked/transcluded notes, and its generated Codex Session Logs. Write the result into the daily note under `# Where I'm Leaving Off` as `## Daily Codex Summary`, then use the same synthesized context to write `## Jira Ticket Candidates`. The `## Jira Ticket Candidates` section is a Codex-generated suggestion list only; it must not be treated as accepted or planned Jira work without further supporting context or explicit user/team confirmation.
 
 ## Workflow
 
@@ -15,6 +15,8 @@ Create a compact daily summary from two sources: the user's Slack activity for t
 Use an explicit human-provided date when present. Otherwise, use "today" in the user's Slack profile timezone when Slack is available; if Slack is unavailable, use the environment date. For scheduled or otherwise default daily-summary runs on a Monday, summarize the previous Friday's note rather than Sunday, since weekend daily notes usually do not exist. If a scheduled wrapper passes a computed target date for the previous Sunday, treat it as default date selection and switch to the previous Friday; do not override a date that the human intentionally requested.
 
 2. Resolve the Slack user and search their messages.
+Before reading source notes, refresh Codex Session Logs when the new pipeline is installed on the laptop. If `CODEX_ACTIVITY_PREPARED=1` or the caller says logs were refreshed, skip this refresh: the outer daily job holds the shared writer lock. Otherwise use the [session-log skill](../journal-codex-session-logs/SKILL.md) to collect and reconcile the target date on the designated writer. On the desktop, or when the pipeline is not installed, use the existing section without launching a second writer. If refresh fails, preserve the old section and report its coverage limitation; do not present it as complete.
+
 Call `slack_read_user_profile` to get the user ID and timezone. Search all accessible Slack surfaces with:
 
 ```text
@@ -29,8 +31,8 @@ Group messages by topic, not by timestamp. Track who the user talked to and wher
 4. Read the journal sources.
 Open `daily/YYYY-MM-DD.md`. Capture substantive body text, especially `# Where I'm Leaving Off`. Extract `[[wikilinks]]` and `![[transclusions]]` from the daily note and resolve them by exact filename search; prefer matching-date notes in `calendars/`, then task notes. Read only directly linked notes that add concrete work detail.
 
-5. Synthesize Slack plus journal notes.
-Merge duplicated topics across Slack and journal notes. The daily note is the user's own framing; preserve it when deciding emphasis. Slack usually adds people, channels, missing details, and conversational context.
+5. Synthesize Slack, journal notes, and Codex activity.
+Merge duplicated topics across these sources. The user's own daily-note text provides their framing; preserve it when deciding emphasis. Slack usually adds people, channels, missing details, and conversational context. Codex Session Logs add session outcomes and stopping points; respect their coverage note and distinguish proposals from completed work. Do not re-summarize all raw activity records here or count the same outcome twice. Preserve the separate session-log section and its generated markers.
 
 6. Identify Jira ticket candidates.
 Use the synthesized Slack plus journal context from this run; do not comb back through Slack or reread broad journal sources just for Jira candidates. Look for follow-ups that are concrete enough to become tickets: bugs, investigations, implementation tasks, validation work, deployment/support chores, documentation gaps, or coordination tasks with a clear desired outcome. Skip weak candidates, already-completed work, generic meetings, status updates, personal tasks, and duplicate items.

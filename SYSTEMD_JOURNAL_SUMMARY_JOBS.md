@@ -7,6 +7,37 @@ The jobs live outside the journal vault, but they run Codex against `~/journal`:
 - daily summary: updates the previous workday's `daily/YYYY-MM-DD.md`
 - weekly summary: regenerates `weekly/weekly-summary-YYYY-MM-DD.md` for the previous fully completed Monday-Sunday week
 
+## Codex Session Activity Extension
+
+The `journal-codex-session-logs` workflow adds five-minute, model-free collectors
+on laptop and desktop, plus an hourly Luna High summary job on the laptop.
+Filtered evidence is published as immutable JSONL batches in the vault; the
+existing vault sync transports those batches. Only the laptop edits daily notes.
+Implementation and tests are in `journal/skills/journal-codex-session-logs/`;
+systemd templates are in `journal/systemd/`.
+
+Follow [the laptop handoff](journal/skills/journal-codex-session-logs/references/laptop-handoff.md)
+to verify JSONL/JSON sync and model access, install the new jobs, and integrate the
+existing daily service. The installer uses a reversible `session-logs.conf`
+drop-in rather than rewriting the original service or wrapper documented below.
+It preserves `EnvironmentFile=%h/.config/environment.d/bg-ai-gateway.conf`.
+After integration, the daily service runs `scripts/daily.py`, which holds the
+shared writer lock, reconciles session activity, then invokes the existing daily
+summary skill for the previous workday and any closed days changed by late sync.
+The weekly job and existing daily timer schedule stay unchanged.
+
+For the desktop, run from `~/code/codex-skills`:
+
+```bash
+python3 journal/skills/journal-codex-session-logs/scripts/install.py --device desktop --enable
+systemctl --user start codex-activity-collect.service
+systemctl --user list-timers codex-activity-collect.timer --all --no-pager
+```
+
+No model credentials are needed by the collector. New configs import only the
+installation day's activity onward by default. Laptop installation is a separate
+step; do not enable a summary writer on the desktop.
+
 ## Design
 
 Use user-level systemd units under:

@@ -1,0 +1,10 @@
+[Unit]
+Description=Refresh Codex journal session logs hourly
+
+[Timer]
+OnCalendar=*-*-* *:10:00
+Persistent=true
+Unit=codex-session-logs.service
+
+[Install]
+WantedBy=timers.target
