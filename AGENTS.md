@@ -8,6 +8,13 @@ The source repository is `/home/dcolli23/code/codex-skills`. These instructions
 are also exposed at `~/.codex/skills/AGENTS.md`; that directory contains skill
 discovery symlinks, not a separate source repository.
 
+## Workflow Wishlist
+
+Dylan's feature wishlist lives in the journal at
+[Agentic Workflow Wishlist](</home/dcolli23/journal/ideas/Agentic Workflow Wishlist.md>).
+Consult that note when Dylan references the workflow wishlist during a feature
+request. Keep wishlist entries in the journal; this is only a pointer to them.
+
 ## Commit and Push Authorization
 
 When Dylan requests any change to this `code/codex-skills` repository, commit
