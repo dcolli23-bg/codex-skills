@@ -55,6 +55,13 @@ Python's standard `logging` logger or the C++ `bg_logging` logger is a
 and logging path before concluding that a requirement is unmet. An existing
 noncompliant helper does not exempt new functionality that relies on it.
 
+For BG-owned Python packages added or modified by the PR, departures from the
+standard `generate_setuptools_setup()` setup and package discovery layout are
+also **blockers**. Check `setup.py`, `package.xml`, and tracked package symlinks
+together using the [Python packaging criteria](references/review-criteria.md#python-packaging-and-package-layout).
+Do not accept custom setup overrides as harmless boilerplate or defer correcting
+the affected package to a follow-on ticket unless Dylan explicitly allows it.
+
 These are Dylan's proposed review standards, **not proof that every existing
 BG repository already follows them**. Apply them to new or changed BG-owned
 code; identify legacy or third-party exceptions and separately scoped

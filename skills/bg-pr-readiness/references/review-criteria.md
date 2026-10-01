@@ -4,6 +4,52 @@ Apply these to changed BG-owned code and the deployments it affects. Cite the
 specific code or PR section behind each finding. Questions are preferable to
 assertions when the runtime path or team convention has not been verified.
 
+## Python packaging and package layout
+
+- **Blocking requirement:** BG-owned Python packages added or modified by the
+  PR must use the standard BG setup and package discovery layout. Flag any
+  departure as a **blocker** and request correction before merge, even when
+  the PR's new functionality relies on pre-existing nonstandard packaging.
+  A working build does not waive this convention. Only an explicit exception
+  from Dylan permits a deviation; keep unrelated legacy and third-party
+  packages outside the review's scope.
+- Keep `setup.py` to the standard helper invocation, apart from normal headers:
+
+  ```python
+  from setuptools import setup
+
+  from bg_build.python_setup import generate_setuptools_setup
+
+  setup(**generate_setuptools_setup())
+  ```
+
+  Assigning the helper result to a variable and passing it unchanged to
+  `setup()` is equivalent. Custom keyword arguments or mutations of that
+  result are nonstandard, including `install_requires`, `tests_require`,
+  `packages`, `package_dir`, `scripts`, and duplicated package metadata.
+  Do not assume a special build need grants an exception.
+- Use package-root discovery supplied by the helper. When Python sources live
+  under `src/<package_name>/`, require a tracked relative symlink
+  `<package_name> -> src/<package_name>` inside the ROS package directory.
+  Verify the symlink target and Python package contents at the reviewed
+  revision. Do not retain `find_packages("src")` or `package_dir` overrides
+  to compensate for a missing symlink, and do not recommend deleting those
+  overrides without supplying the discoverable layout.
+- Declare runtime, build, and test dependencies in `package.xml`, including
+  `<buildtool_depend>bg_build</buildtool_depend>` for the helper import and
+  the appropriate test dependencies. Use valid dependency keys; do not copy
+  pip requirement strings into XML or invent mappings. Container dependency
+  installation and version pins belong in the appropriate image/starters
+  configuration, not custom `setup.py` dependency lists. For extracted shared
+  code, the shared package owns its dependencies and callers depend on that
+  package.
+- Let BG tooling discover scripts and generate setup metadata. Read the
+  selected checkout's `bg_build/python_setup.py` when discovery is uncertain.
+  Examples of the minimal setup and source symlink pattern are
+  `bg_core/perception/dimension_estimator` and
+  `bg_rad_core/generalist_rfm_application`; `bg_rad_core#104` exposed the
+  dependency and source-layout overrides this check is intended to catch.
+
 ## Configuration and deployment
 
 - New BG application/cell settings should come from ZooKeeper through BG's
