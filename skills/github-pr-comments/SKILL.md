@@ -35,14 +35,40 @@ intervening changes or replies. Reassess if the head changed. Read existing
 comments to avoid semantic duplicates, not just exact copies; a useful existing
 explanation can be left alone.
 
-Choose the target that matches the request:
+## Group comments into one review
+
+By default, gather all authorized findings for a PR before posting and submit
+them together in **one review**. Put code-specific findings in its `comments`
+array and general findings in its summary `body`. Submit once with
+`POST /repos/{owner}/{repo}/pulls/{pr}/reviews`, the reviewed `commit_id`, and
+`event: "COMMENT"`, unless the user explicitly authorized another verdict.
+Each inline body and the summary must still start with `[codex]`.
+
+This groups the feedback into one review submission and reduces notification
+noise; do not promise an exact notification count. Do not post each finding
+individually and then add a review summary, which duplicates notifications.
+Prepare and validate the complete payload, including diff locations and
+duplicate checks, before the write. Verify the returned review and all of its
+inline comments, and record their IDs/URLs together in the receipt.
+
+For follow-up explanations, prefer one review summary linking the relevant
+existing threads when the user has not requested in-thread replies. Replies
+to existing threads cannot be bundled in a new review's `comments` array; use
+the reply endpoint when in-thread replies are requested and consolidate each
+thread's explanation into one reply. Use standalone discussion comments only
+when explicitly requested, consolidating related findings into one body.
+
+If the authorized tool cannot submit a grouped review, report that limitation
+instead of silently falling back to a series of individual comments. Do not
+delete or repost previously published comments merely to regroup them.
+
+Use these endpoints for the selected posting mode:
 
 | Comment type | GitHub REST target and placement |
 | --- | --- |
 | Standalone PR discussion | `POST /repos/{owner}/{repo}/issues/{pr}/comments` with `body`. |
-| New inline review comment | `POST /repos/{owner}/{repo}/pulls/{pr}/comments` with `body`, reviewed `commit_id`, `path`, `line`, and `side`; use `start_line`/`start_side` for a range. Anchor to the current diff. |
-| Reply to an inline thread | The same PR comments endpoint with `body` and `in_reply_to` identifying the root comment, not a reply-to-reply. |
-| Submitted review | `POST /repos/{owner}/{repo}/pulls/{pr}/reviews` with reviewed `commit_id`, authorized event, optional summary `body`, and any inline `comments`. A request to post comments uses `COMMENT`; do not infer approval or a request-changes verdict. |
+| Submitted review (default) | `POST /repos/{owner}/{repo}/pulls/{pr}/reviews` with reviewed `commit_id`, authorized `event`, summary `body`, and inline `comments`. Each inline entry contains `body`, `path`, `line`, and `side`; use `start_line`/`start_side` for a range. Anchor to the current diff. Omit `comments` for a summary-only review. |
+| Reply to an inline thread | `POST /repos/{owner}/{repo}/pulls/{pr}/comments` with `body` and `in_reply_to` identifying the root comment, not a reply-to-reply. |
 
 Preserve actual newlines through structured arguments or a payload/body file.
 For general discussion follow-ups, identify the source comments and consolidate
@@ -61,3 +87,5 @@ for complete discussion collection, standalone PR comments, and inline replies.
 It preserves the existing preview, head checks, duplicate checks, and receipts.
 Use the authorized API/tool workflow above for new inline comments or batched
 reviews; those are not supported by the helper's reply-plan schema.
+The helper posts plan entries individually. Do not use it to publish a batch
+of findings that belongs in one review.

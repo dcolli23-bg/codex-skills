@@ -152,6 +152,9 @@ Install `github-pr-comments` below for its shared posting workflow.
 Both PR review skills use `skills/github-pr-comments/` for posting standalone
 PR discussion comments, inline review comments, replies, and review summaries.
 Every posted comment begins with `[codex]`.
+Default to one submitted review per PR posting batch, grouping inline findings
+and general feedback to reduce notifications. Standalone comments and existing
+thread replies remain available when explicitly requested.
 
 ```bash
 ln -sfn ~/code/codex-skills/skills/github-pr-comments ~/.codex/skills/github-pr-comments
