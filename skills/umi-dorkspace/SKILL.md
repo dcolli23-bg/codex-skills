@@ -26,49 +26,69 @@ If the guard fails, stop immediately and report its error. Do not continue with 
 
 The workspace is bind-mounted, so edits in either location affect the same files. Perform all code and repository reads directly on the host source tree, including source searches, file inspection, `AGENTS.md` discovery, and Git inspection. Make normal source edits there as well. Do not connect to a container merely to read the bind-mounted source.
 
-Use a container only for builds, tests, ROS commands, environment-dependent dependency checks, and runtime inspection.
+Use the relevant running system container only for builds, tests, ROS commands, environment-dependent dependency checks, and runtime inspection.
 
-## Connect when container execution is required
+## Use the system container for execution
 
-1. Read `docker/docker-compose.yml` and the relevant `docker/systems/` configuration before connecting.
-2. Verify whether appropriate workspace or system containers are already running without changing state:
+Run Dorkspace commands from `/home/dcolli23/dorkspaces/umi_ws`. Prefer the
+relevant system's `bg-processes` container. Do not default to SSH or the generic
+`workspace` container.
+
+1. Determine the target UMI system from the user's request, the relevant
+   `docker/systems/` configuration, and the currently running containers.
+   Do not guess when it is ambiguous. Inspect running containers without
+   changing state:
 
    ```bash
-   cd /home/dcolli23/dorkspaces/umi_ws
-   docker compose ps
    docker ps --format 'table {{.Names}}\t{{.Status}}'
    ```
 
-3. The workspace container's SSH mapping is `${BG_SSH_PORT:-5830}:${BG_SSH_PORT:-5824}`: use the host-side value, normally port `5830`. Verify access with:
+2. For interactive development with a terminal, use:
 
    ```bash
-   ssh -p 5830 -o BatchMode=yes -o ConnectTimeout=5 robot@localhost 'printf "user=%s BG_ROOT=%s\n" "$USER" "$BG_ROOT"; test -d /opt/bg/ws/src'
+   cd /home/dcolli23/dorkspaces/umi_ws
+   ds exec <system>-bg-processes
    ```
 
-4. For interactive workspace development, use:
-
-   ```bash
-   ssh -tt -p 5830 robot@localhost
-   cd /opt/bg/ws
-   ```
-
-5. For a one-shot workspace command that needs aliases and ROS initialization, use a login interactive shell:
-
-   ```bash
-   ssh -p 5830 robot@localhost "bash -lic 'cd /opt/bg/ws && <command>'"
-   ```
-
-6. For system work, use the relevant running system container. The documented system is `bg_sumi_6`; `bg-processes` is usually the appropriate container:
+   For the `bg_sumi_6` system, use:
 
    ```bash
    cd /home/dcolli23/dorkspaces/umi_ws
    ds exec bg_sumi_6-bg-processes
    ```
 
-   Do not assume this container is running or that it is appropriate for every task.
+   Do not assume this system is appropriate for every task or that its container
+   is running. After entering, verify that the working directory is `/opt/bg/ws`.
+
+3. For a one-shot command that needs ROS initialization or shell aliases, use:
+
+   ```bash
+   cd /home/dcolli23/dorkspaces/umi_ws
+   ds exec <system>-bg-processes "bash -lic 'cd /opt/bg/ws && <command>'"
+   ```
+
+   For example, verify access and shell initialization in `bg_sumi_6` with:
+
+   ```bash
+   cd /home/dcolli23/dorkspaces/umi_ws
+   ds exec bg_sumi_6-bg-processes "bash -lic 'cd /opt/bg/ws && pwd && whoami && printenv ROS_DISTRO && type bgbuild && test -d src'"
+   ```
+
+`ds exec` joins its command arguments into a shell command; preserve the inner
+quotes so the entire payload reaches `bash -lic`. Quote literal `$` expressions
+for the container rather than allowing host-shell expansion. Without a terminal,
+plain `ds exec` uses `bash -c` and does not ensure interactive shell initialization.
+Alternatively, explicitly source the system's ROS and workspace setup before
+running executable commands that do not depend on shell aliases.
+
+The current `.dorkspacerc.yaml` sets `container_name: workspace`, so `ds bash`
+targets the generic workspace. The `ds build` and `ds test` aliases also route
+through `ds bash`; use explicit `ds exec <system>-bg-processes` commands for
+system-container builds and tests.
 
 ## Work safely
 
+- State the selected UMI system container in the first substantive progress update when container execution is required.
 - Before editing under the host `src/`, discover and follow every applicable nested `AGENTS.md`.
 - Inspect repository status on the host before changing files and preserve unrelated modifications. The top-level `umi_ws` workspace may contain local, uncommitted changes.
 - Do not use host tools as evidence that a ROS build or test works in a container.

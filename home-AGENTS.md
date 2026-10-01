@@ -107,8 +107,9 @@ When Dylan says “work in UMI,” “work in SUMI,” “work in the UMI contai
 - The host source tree `/home/dcolli23/dorkspaces/umi_ws/src` maps to `/opt/bg/ws/src` in the containers.
 - Perform all code and repository reads directly on the host source tree, including source searches, file inspection, `AGENTS.md` discovery, and Git inspection. Make normal source edits there as well.
 - UMI system work can use multiple containers. Determine the relevant running system container before choosing one; `bg-processes` is generally appropriate for system build, test, ROS, and runtime work.
-- For workspace-container access, prefer SSH to `robot@localhost`; obtain the host SSH port from `dorkspaces/umi_ws/docker/docker-compose.yml` (currently 5830 by default).
-- Use a login/interactive shell or explicitly source the ROS and workspace setup before environment-sensitive commands.
+- From `/home/dcolli23/dorkspaces/umi_ws`, prefer `ds exec <system>-bg-processes`; do not default to SSH or the generic workspace container. For the `bg_sumi_6` system, use `ds exec bg_sumi_6-bg-processes`.
+- The current `ds bash`, `ds build`, and `ds test` aliases target the workspace, so use explicit system-container execution instead.
+- For one-shot environment-sensitive commands, use `ds exec <system>-bg-processes "bash -lic 'cd /opt/bg/ws && <command>'"`, or explicitly source the ROS and workspace setup. Preserve the inner quotes.
 - Use the relevant container only for builds, tests, ROS commands, environment-dependent dependency checks, and runtime inspection. Do not enter it merely to read the bind-mounted source.
 - Read applicable repository `AGENTS.md` files beneath the host `src/` before editing.
 - Do not start, stop, restart, rebuild, update, or otherwise disrupt workspace or system containers unless Dylan asks, or the task requires it and the impact is stated first.

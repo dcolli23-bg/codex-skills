@@ -246,18 +246,21 @@ readlink -f ~/AGENTS.md
 
 ## Dorkspace Skill Installation
 
-The RAD P2 and GAI workflows are maintained in `skills/rad-p2-dorkspace/` and
-`skills/gai-dorkspace/`, with matching routing in `home-AGENTS.md`. Keep those
-instructions consistent: RAD P2 prefers `ds exec workspace`, while GAI prefers
-`ds exec <system>-bg-processes`, each from its host workspace directory.
+The RAD P2, GAI, and UMI workflows are maintained in `skills/rad-p2-dorkspace/`,
+`skills/gai-dorkspace/`, and `skills/umi-dorkspace/`, with matching routing in
+`home-AGENTS.md`. Keep those instructions consistent: RAD P2 prefers
+`ds exec workspace`, while GAI and UMI prefer `ds exec <system>-bg-processes`,
+each from its host workspace directory.
 
-Expose and verify both skills using the tracked-source symlink pattern:
+Expose and verify these skills using the tracked-source symlink pattern:
 
 ```bash
 ln -sfn ~/code/codex-skills/skills/rad-p2-dorkspace ~/.codex/skills/rad-p2-dorkspace
 ln -sfn ~/code/codex-skills/skills/gai-dorkspace ~/.codex/skills/gai-dorkspace
+ln -sfn ~/code/codex-skills/skills/umi-dorkspace ~/.codex/skills/umi-dorkspace
 readlink -f ~/.codex/skills/rad-p2-dorkspace
 readlink -f ~/.codex/skills/gai-dorkspace
+readlink -f ~/.codex/skills/umi-dorkspace
 readlink -f ~/AGENTS.md
 ```
 
