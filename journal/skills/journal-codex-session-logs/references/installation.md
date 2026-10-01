@@ -111,15 +111,44 @@ how the runtime directory is created or mounted and repair its ownership/lifecyc
 Restore the user manager before enabling timers. Manual collection remains
 available; old batches or coverage timestamps do not prove a timer is running.
 
-## Verify cross-device sync
+## Configure and verify cross-device sync
 
-Enable vault sync on both devices. In Obsidian Sync settings, enable syncing
-**all other file types** if needed and ensure `codex-activity` is not excluded.
-A running sync client alone does not establish that JSONL/JSON files sync.
-The desktop must have its vault sync running for batches to reach the laptop;
-collection itself works without Obsidian running or network access.
+On **both desktop and laptop**, open the journal vault in Obsidian and configure
+**Settings → Sync → Selective sync → Sync all other types**. Enable this option
+so the `.jsonl` activity batches and `.json` metadata/summary artifacts can sync.
+Ensure `codex-activity` is not excluded. This is a required setup step; changing
+the setting on one machine does not configure the other, and the installer does
+not change Obsidian settings.
 
-On the laptop, verify that these have arrived:
+Keep Obsidian running with the journal vault open on both machines. Locking the
+desktop normally does not stop sync, but closing Obsidian, logging out of its
+desktop session, or suspending the machine can. Collection itself works without
+Obsidian running or network access; successful collection does not prove upload.
+
+### Configure the desktop remotely with Remmina
+
+When working over SSH without physical desktop access, use the existing desktop
+session through VNC. `dylan-lambda` already has x11vnc configured on port 5900;
+confirm it is still running before relying on this setup. No additional server
+installation or Obsidian restart is needed.
+
+On the laptop, leave this SSH tunnel running:
+
+```bash
+ssh -N -L 127.0.0.1:5901:localhost:5900 dcolli23@dylan-lambda
+```
+
+In Remmina, select **VNC**, connect to **localhost:5901**, and use the existing
+VNC password (which may differ from the Linux login password). Unlock the desktop
+if necessary, open Obsidian, and enable the Sync option above. Once syncing
+finishes, disconnect Remmina and stop the SSH tunnel; leave Obsidian running in
+the desktop session so later batches continue syncing. Launching Obsidian through
+SSH X forwarding instead ties that app instance to the SSH connection.
+
+### Verify arrival on the laptop
+
+Check the laptop's filesystem directly: Obsidian's file explorer may hide
+unsupported types even when they have synced. Verify that these have arrived:
 
 - `codex-activity/devices/desktop.json`
 - At least one `codex-activity/YYYY-MM-DD/desktop/<session-id>/*.jsonl`
