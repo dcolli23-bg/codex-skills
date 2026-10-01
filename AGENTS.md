@@ -246,18 +246,26 @@ readlink -f ~/AGENTS.md
 
 ## Dorkspace Skill Installation
 
-The RAD P2, GAI, and UMI workflows are maintained in `skills/rad-p2-dorkspace/`,
-`skills/gai-dorkspace/`, and `skills/umi-dorkspace/`, with matching routing in
-`home-AGENTS.md`. Keep those instructions consistent: RAD P2 prefers
-`ds exec workspace`, while GAI and UMI prefer `ds exec <system>-bg-processes`,
-each from its host workspace directory.
+Shared container behavior is maintained in `skills/dorkspace-container/SKILL.md`.
+The named skills in `skills/rad-p2-dorkspace/`, `skills/gai-dorkspace/`, and
+`skills/umi-dorkspace/` are entry points, each with an `environment.yaml` containing
+`starters_root`, `execution`, and (for system workflows) `default_system`.
+Keep environment settings in those configs, shared behavior in the shared skill,
+and only environment-specific guidance in the entry points. `home-AGENTS.md`
+routes requests to the entry points without duplicating their workflows.
+
+Install the shared skill alongside all three entry points; their relative links
+require it. The container workspace comes directly from `BG_ROOT`; system targets
+use the fixed `bg-processes` service, with no config field for either value.
 
 Expose and verify these skills using the tracked-source symlink pattern:
 
 ```bash
+ln -sfn ~/code/codex-skills/skills/dorkspace-container ~/.codex/skills/dorkspace-container
 ln -sfn ~/code/codex-skills/skills/rad-p2-dorkspace ~/.codex/skills/rad-p2-dorkspace
 ln -sfn ~/code/codex-skills/skills/gai-dorkspace ~/.codex/skills/gai-dorkspace
 ln -sfn ~/code/codex-skills/skills/umi-dorkspace ~/.codex/skills/umi-dorkspace
+readlink -f ~/.codex/skills/dorkspace-container
 readlink -f ~/.codex/skills/rad-p2-dorkspace
 readlink -f ~/.codex/skills/gai-dorkspace
 readlink -f ~/.codex/skills/umi-dorkspace

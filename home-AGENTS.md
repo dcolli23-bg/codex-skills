@@ -74,42 +74,20 @@ ln -sfn /home/dcolli23/code/codex-skills/skills/<skill-name> /home/dcolli23/.cod
 readlink -f /home/dcolli23/.codex/skills/<skill-name>
 ```
 
-## RAD P2 Dorkspace
+## Dorkspace Workflows
 
-When Dylan says “work in the RAD P2 container,” “work in rad p2,” or equivalent, treat `/home/dcolli23/dorkspaces/rad_p2` as the active development environment until he changes it.
+Use the matching entry-point skill when Dylan selects an environment by name or
+workspace path, and keep that environment active until he changes it:
 
-- The host source tree `/home/dcolli23/dorkspaces/rad_p2/src` maps to `/opt/bg/ws/src` in the container.
-- Perform all code and repository reads directly on the host source tree, including source searches, file inspection, `AGENTS.md` discovery, and Git inspection. Make normal source edits there as well.
-- Use the running `workspace` container only for builds, tests, ROS commands, environment-dependent dependency checks, and runtime inspection. Do not enter it merely to read the bind-mounted source.
-- From `/home/dcolli23/dorkspaces/rad_p2`, prefer `ds exec workspace`. RAD P2 uses the workspace container; `ds bash` is a shortcut for this configured target. Do not default to SSH or a system container.
-- For one-shot environment-sensitive commands, use `ds exec workspace "bash -lic 'cd /opt/bg/ws && <command>'"`, or explicitly source the ROS and workspace setup. Preserve the inner quotes so `ds` passes the full command to the initialized shell.
-- Read applicable repository `AGENTS.md` files beneath the host `src/` before editing.
-- Do not start, stop, rebuild, or otherwise disrupt the container or system unless Dylan asks, or the task requires it and the impact is stated first.
+- RAD P2 / “work in the RAD P2 container” / `/home/dcolli23/dorkspaces/rad_p2`:
+  [rad-p2-dorkspace](/home/dcolli23/.codex/skills/rad-p2-dorkspace/SKILL.md).
+- GAI / “work in GAI” / `/home/dcolli23/dorkspaces/gai`:
+  [gai-dorkspace](/home/dcolli23/.codex/skills/gai-dorkspace/SKILL.md).
+- UMI / SUMI / “work in the UMI container” / `/home/dcolli23/dorkspaces/umi_ws`:
+  [umi-dorkspace](/home/dcolli23/.codex/skills/umi-dorkspace/SKILL.md).
 
-## GAI Dorkspace
-
-When Dylan says “work in GAI,” references `/home/dcolli23/dorkspaces/gai`, or equivalent, use the `gai-dorkspace` skill and treat that path as the active development environment until he changes it.
-
-- The host source tree `/home/dcolli23/dorkspaces/gai/src` maps to `/opt/bg/ws/src` in the containers.
-- Perform all code and repository reads directly on the host source tree, including source searches, file inspection, `AGENTS.md` discovery, and Git inspection. Make normal source edits there as well.
-- Use the relevant running system container only for builds, tests, ROS commands, environment-dependent dependency checks, and runtime inspection. Do not enter it merely to read the bind-mounted source.
-- From `/home/dcolli23/dorkspaces/gai`, prefer `ds exec <system>-bg-processes`; do not default to SSH or the generic workspace container. The current `ds bash`, `ds build`, and `ds test` aliases target the workspace, so use explicit system-container execution instead.
-- For the RAD ABB FA system, use `ds exec rad_abb_fa-bg-processes`.
-- For one-shot environment-sensitive commands, use `ds exec <system>-bg-processes "bash -lic 'cd /opt/bg/ws && <command>'"`, or explicitly source the ROS and workspace setup. Preserve the inner quotes.
-- Determine the relevant running system container from the request and current state rather than guessing.
-- Read applicable repository `AGENTS.md` files beneath the host `src/` before editing.
-- Do not start, stop, restart, rebuild, update, or otherwise disrupt workspace or system containers unless Dylan asks, or the task requires it and the impact is stated first.
-
-## UMI Dorkspace
-
-When Dylan says “work in UMI,” “work in SUMI,” “work in the UMI container,” or equivalent, treat `/home/dcolli23/dorkspaces/umi_ws` as the active development environment until he changes it.
-
-- The host source tree `/home/dcolli23/dorkspaces/umi_ws/src` maps to `/opt/bg/ws/src` in the containers.
-- Perform all code and repository reads directly on the host source tree, including source searches, file inspection, `AGENTS.md` discovery, and Git inspection. Make normal source edits there as well.
-- UMI system work can use multiple containers. Determine the relevant running system container before choosing one; `bg-processes` is generally appropriate for system build, test, ROS, and runtime work.
-- From `/home/dcolli23/dorkspaces/umi_ws`, prefer `ds exec <system>-bg-processes`; do not default to SSH or the generic workspace container. For the `bg_sumi_6` system, use `ds exec bg_sumi_6-bg-processes`.
-- The current `ds bash`, `ds build`, and `ds test` aliases target the workspace, so use explicit system-container execution instead.
-- For one-shot environment-sensitive commands, use `ds exec <system>-bg-processes "bash -lic 'cd /opt/bg/ws && <command>'"`, or explicitly source the ROS and workspace setup. Preserve the inner quotes.
-- Use the relevant container only for builds, tests, ROS commands, environment-dependent dependency checks, and runtime inspection. Do not enter it merely to read the bind-mounted source.
-- Read applicable repository `AGENTS.md` files beneath the host `src/` before editing.
-- Do not start, stop, restart, rebuild, update, or otherwise disrupt workspace or system containers unless Dylan asks, or the task requires it and the impact is stated first.
+Each entry point supplies `environment.yaml` to the
+[shared Dorkspace container workflow](/home/dcolli23/.codex/skills/dorkspace-container/SKILL.md),
+which owns source access, container selection, execution, and lifecycle rules.
+Keep environment settings in those configuration files and shared behavior in
+that skill rather than duplicating them here.
