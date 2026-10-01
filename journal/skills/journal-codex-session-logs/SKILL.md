@@ -34,6 +34,11 @@ Do not run these commands recursively from the model summarization prompt or whe
 
 ## Summary behavior
 
+Summarize only user messages and explicitly marked assistant final responses.
+Exclude progress commentary, tool outcomes, and interruption events from model
+input. Filter before chunking and cache hashing so excluded activity alone does
+not trigger new model calls. Collected source batches remain intact.
+
 The scripts invoke `gpt-6-luna` with `high` reasoning for new evidence chunks and
 full-day synthesis. Keep grouping conservative: a shared repository or similar
 session title is insufficient to merge separate objectives. Include non-code
@@ -47,9 +52,17 @@ iterative compression loop. Closed days are reconciled from filtered records;
 late synced activity triggers reconciliation again and queues the normal daily
 summary for the next daily job.
 
+Model calls use short source references, expanded to full evidence/session IDs
+in Python before saving. Daily synthesis makes one call over chunk-summary
+topics. If its compact prompt and schema exceed 64,000 characters, stop and
+review the input budget; preserve the existing note and cached chunks. Do not
+restore recursive consolidation. See the storage contract for provenance details.
+
 Only replace the generated `## Codex Session Logs` block under
-`# Where I'm Leaving Off`. Keep concise topic bullets with outcomes and latest
-stopping points. Preserve other headings, frontmatter, links, manual notes, and
+`# Where I'm Leaving Off`. Give each topic a heading, a concise Summary paragraph,
+and a separate Where I left off paragraph with its latest stopping point and any
+supported next action. Avoid repeating information between those paragraphs.
+Preserve other headings, frontmatter, links, manual notes, and
 existing Daily Codex Summary/Jira Ticket Candidates sections. Missing daily notes
 are skipped; their activity is retained for a later run.
 

@@ -263,5 +263,143 @@ class ActivityTest(unittest.TestCase):
         self.assertEqual(len(self.calls) - old_count, 1)  # Cached chunk reused; only synthesis runs.
 
 
+    def test_model_request_omits_full_ids_and_bookkeeping(self):
+        self.message('Implemented parsing')
+        self.message('Tests passed', 'assistant')
+        collect.collect(self.config)
+        records = self.records()
+        payload, sources = summarize.prepare_model_input(records)
+        prompt, schema, _ = summarize.model_request('Summarize', records)
+        for record in records:
+            self.assertNotIn(record['id'], prompt + json.dumps(schema))
+            self.assertNotIn(record['session'], prompt + json.dumps(schema))
+        for field in ('source_offset', 'schema', 'device', 'day'):
+            self.assertTrue(all(field not in item for item in payload['items']))
+        self.assertEqual(payload['contexts'], {'c1': '/work'})
+        self.assertEqual([x['kind'] for x in payload['items']], [r['kind'] for r in records])
+        self.assertEqual([x['timestamp'] for x in payload['items']], [r['timestamp'] for r in records])
+        topic = {'title': 'Parser', 'outcome': 'Tests passed.', 'status': 'complete',
+                 'next_step': '', 'sources': ['e2', 'e2']}
+        result = summarize.expand_sources({'topics': [topic]}, sources)
+        self.assertEqual(result['topics'][0]['evidence'], [records[1]['id']])
+        self.assertEqual(result['topics'][0]['sessions'], ['session-1'])
+
+    def test_synthesis_refs_expand_only_selected_topics(self):
+        def topic(session, evidence):
+            return {'title': 'Work', 'outcome': 'Implemented.', 'status': 'complete',
+                    'next_step': '', 'sessions': [session], 'evidence': evidence}
+        summaries = [{'topics': [topic('session-a', ['a1', 'a2']), topic('session-b', ['b1'])],
+                      'period': {'start': '2026-09-30T12:00:00Z', 'end': '2026-09-30T13:00:00Z'}},
+                     {'topics': [topic('session-a', ['a2', 'a3'])]}]
+        payload, sources = summarize.prepare_model_input(summaries)
+        self.assertEqual([t['sessions'] for t in payload['items']], [['s1'], ['s2'], ['s1']])
+        self.assertEqual(payload['items'][0]['period'], summaries[0]['period'])
+        output = {'topics': [{'title': 'Work', 'outcome': 'Implemented.', 'status': 'complete',
+                              'next_step': '', 'sources': ['t1', 't3']}]}
+        result = summarize.expand_sources(output, sources)['topics'][0]
+        self.assertEqual(result['sessions'], ['session-a'])
+        self.assertEqual(result['evidence'], ['a1', 'a2', 'a3'])
+
+    def test_invalid_compact_citations_preserve_note(self):
+        self.message('Implement parsing')
+        collect.collect(self.config)
+        note = self.vault / 'daily/2026-09-30.md'
+        note.write_text('Keep this note')
+        for refs in ([], ['e999'], ['session-1'], [123], 'e1'):
+            def invalid(mode, items):
+                _, sources = summarize.prepare_model_input(items)
+                return summarize.expand_sources({'topics': [{
+                    'title': 'Work', 'outcome': 'Done.', 'status': 'complete',
+                    'next_step': '', 'sources': refs}]}, sources)
+            with self.subTest(refs=refs), self.assertRaises(ValueError):
+                summarize.run(self.config, model=invalid)
+            self.assertEqual(note.read_text(), 'Keep this note')
+
+    def test_large_provenance_uses_one_compact_synthesis(self):
+        self.message('Implement parsing')
+        collect.collect(self.config)
+        note = self.vault / 'daily/2026-09-30.md'
+        note.write_text('Manual note')
+        records = [dict(self.records()[0], id=f'{i:064x}:0', session=f'session-{i // 200}')
+                   for i in range(400)]
+        with patch.object(summarize, 'load_records', return_value=records):
+            summarize.run(self.config, model=self.model)
+            synthesis = [(mode, items) for mode, items in self.calls if mode.startswith('Synthesize')]
+            self.assertEqual(len(synthesis), 1)
+            self.assertFalse(any(mode.startswith('Consolidate') for mode, _ in self.calls))
+            self.assertGreater(len(summarize.encode(synthesis[0][1])), 24000)
+            prompt, schema, _ = summarize.model_request(*synthesis[0])
+            self.assertLess(len(prompt) + len(summarize.encode(schema)), summarize.SYNTHESIS_BUDGET_CHARS)
+            count = len(self.calls)
+            summarize.run(self.config, model=self.model)
+            self.assertEqual(len(self.calls), count)
+        result = read_json(self.config.state / 'rendered-days.json')['2026-09-30']['result']
+        self.assertEqual(len(result['topics'][0]['evidence']), 400)
+        self.assertIn('**Where I left off:**', note.read_text())
+
+    def test_synthesis_limit_preserves_note_and_cached_chunks(self):
+        self.message('Implement parsing')
+        collect.collect(self.config)
+        note = self.vault / 'daily/2026-09-30.md'
+        note.write_text('Manual note')
+        with patch.object(summarize, 'SYNTHESIS_BUDGET_CHARS', 1):
+            with self.assertRaisesRegex(RuntimeError, 'no consolidation attempted'):
+                summarize.run(self.config, model=self.model)
+        self.assertEqual(note.read_text(), 'Manual note')
+        self.assertEqual(len(self.calls), 1)
+        summarize.run(self.config, model=self.model)
+        self.assertEqual(len(self.calls), 2)
+        self.assertTrue(self.calls[-1][0].startswith('Synthesize'))
+
+
+    def test_only_user_messages_and_explicit_finals_reach_model(self):
+        self.message('Fix the parser')
+        self.message('Implemented the parser', 'assistant')
+        collect.collect(self.config)
+        records = self.records()
+        omitted = [dict(records[1], id=f'excluded-{i}', kind=kind, text=f'OMIT-{kind}')
+                   for i, kind in enumerate(['assistant:commentary', 'assistant:message',
+                                             'tool_outcome', 'interrupted'])]
+        final = dict(records[1], id='alternate-final', kind='assistant:final')
+        all_records = records + omitted + [final]
+        payload, sources = summarize.prepare_model_input(all_records)
+        self.assertEqual([x['text'] for x in payload['items']],
+                         ['Fix the parser', 'Implemented the parser', 'Implemented the parser'])
+        self.assertEqual({e for source in sources.values() for e in source['evidence']},
+                         {r['id'] for r in records + [final]})
+        summarize.build_summary(self.config, '2026-09-30', all_records, self.model)
+        raw_calls = [items for mode, items in self.calls if mode.startswith('Summarize')]
+        self.assertEqual(len(raw_calls), 1)
+        self.assertEqual(raw_calls[0], records + [final])
+
+    def test_excluded_activity_does_not_invalidate_summary(self):
+        self.message('Fix the parser')
+        collect.collect(self.config)
+        note = self.vault / 'daily/2026-09-30.md'
+        note.write_text('Manual note')
+        summarize.run(self.config, model=self.model)
+        count = len(self.calls)
+        self.add('response_item', {'type': 'message', 'role': 'assistant', 'phase': 'commentary',
+                                  'content': [{'type': 'output_text', 'text': 'Running checks'}]})
+        self.add('response_item', {'type': 'function_call_output', 'output': '12 passed'})
+        self.add('event_msg', {'type': 'turn_aborted'})
+        collect.collect(self.config)
+        self.assertEqual(len(self.records()), 4)
+        summarize.run(self.config, model=self.model)
+        self.assertEqual(len(self.calls), count)
+        self.message('Implemented parsing; tests passed', 'assistant')
+        collect.collect(self.config)
+        summarize.run(self.config, model=self.model)
+        self.assertGreater(len(self.calls), count)
+
+    def test_excluded_only_input_makes_no_model_call(self):
+        model = summarize.CodexModel(self.config)
+        with patch.object(summarize.subprocess, 'Popen') as process:
+            result = model('Summarize', [{'kind': 'assistant:commentary', 'text': 'Checking'}])
+        self.assertEqual(result, {'topics': []})
+        self.assertEqual(model.calls, 0)
+        process.assert_not_called()
+
+
 if __name__ == '__main__':
     unittest.main()
