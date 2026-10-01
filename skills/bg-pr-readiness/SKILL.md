@@ -70,5 +70,6 @@ merely because `bootstrap_default` appears in the code.
   multiple comments on one issue as separate findings.
 - When posting is explicitly requested, read and use the shared
   [github-pr-comments skill](../github-pr-comments/SKILL.md) for standalone
-  comments, inline comments, and submitted reviews. It owns attribution and
-  posting mechanics. Otherwise provide a draft for Dylan to assess.
+  comments, inline comments, and reviews. It owns attribution and posting
+  mechanics, including the default single pending review for Dylan to inspect
+  and submit manually. Otherwise provide a draft for Dylan to assess.

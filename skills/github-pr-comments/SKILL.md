@@ -15,9 +15,9 @@ the PR description, approving/requesting changes, or merging.
 
 Every posted comment body must begin with the literal `[codex]`, followed by the
 comment text. Apply this to standalone PR discussion comments, new inline review
-comments, replies, and nonempty review-summary bodies. For a submitted review,
-prefix **each** entry in `comments[]` as well as any summary body; prefixing only
-the summary is insufficient. Preserve an existing leading `[codex]` rather than
+comments, replies, and nonempty review-summary bodies. For a pending or submitted
+review, prefix **each** entry in `comments[]` as well as any summary body;
+prefixing only the summary is insufficient. Preserve an existing leading `[codex]` rather than
 adding it twice. Do not change historical comments merely to add attribution.
 
 ## Posting workflow
@@ -35,31 +35,41 @@ intervening changes or replies. Reassess if the head changed. Read existing
 comments to avoid semantic duplicates, not just exact copies; a useful existing
 explanation can be left alone.
 
-## Group comments into one review
+## Group comments into one pending review
 
-By default, gather all authorized findings for a PR before posting and submit
-them together in **one review**. Put code-specific findings in its `comments`
-array and general findings in its summary `body`. Submit once with
-`POST /repos/{owner}/{repo}/pulls/{pr}/reviews`, the reviewed `commit_id`, and
-`event: "COMMENT"`, unless the user explicitly authorized another verdict.
-Each inline body and the summary must still start with `[codex]`.
+By default, gather all authorized findings for a PR and save them together in
+**one pending review**. Put code-specific findings in its `comments` array and
+general findings in its summary `body`. Create it with
+`POST /repos/{owner}/{repo}/pulls/{pr}/reviews` and the reviewed `commit_id`;
+**omit `event`** so GitHub leaves the review pending. Do not send
+`event: "COMMENT"`, which submits the review. Each inline body and any summary
+must still start with `[codex]`.
 
-This groups the feedback into one review submission and reduces notification
-noise; do not promise an exact notification count. Do not post each finding
-individually and then add a review summary, which duplicates notifications.
+Dylan will inspect and edit the pending review in GitHub and submit it manually.
+Authorization to post findings is authorization to save this pending review,
+not to submit it. Submit only when Dylan explicitly requests submission; use
+`COMMENT` unless he explicitly authorizes another verdict. Do not publish
+individual findings before creating the pending review.
+
+Check for an existing pending review by the authenticated user before creating
+one. Preserve its draft comments and summary. Reuse it only through a supported
+operation that keeps it pending; if that operation is unavailable, report the
+limitation rather than submitting, deleting, or replacing the existing draft.
 Prepare and validate the complete payload, including diff locations and
-duplicate checks, before the write. Verify the returned review and all of its
-inline comments, and record their IDs/URLs together in the receipt.
+duplicate checks, before the write. Verify that the saved review is `PENDING`
+and contains all intended inline comments and summary text. Record their
+IDs/URLs together in the receipt and identify the result as awaiting Dylan's
+manual submission.
 
-For follow-up explanations, prefer one review summary linking the relevant
-existing threads when the user has not requested in-thread replies. Replies
-to existing threads cannot be bundled in a new review's `comments` array; use
+For follow-up explanations, prefer one pending review summary linking the
+relevant existing threads when the user has not requested in-thread replies.
+Replies to existing threads cannot be bundled in a new review's `comments` array; use
 the reply endpoint when in-thread replies are requested and consolidate each
 thread's explanation into one reply. Use standalone discussion comments only
 when explicitly requested, consolidating related findings into one body.
 
-If the authorized tool cannot submit a grouped review, report that limitation
-instead of silently falling back to a series of individual comments. Do not
+If the authorized tool cannot save a pending review, report that limitation
+instead of submitting a review or publishing individual comments. Do not
 delete or repost previously published comments merely to regroup them.
 
 Use these endpoints for the selected posting mode:
@@ -67,7 +77,8 @@ Use these endpoints for the selected posting mode:
 | Comment type | GitHub REST target and placement |
 | --- | --- |
 | Standalone PR discussion | `POST /repos/{owner}/{repo}/issues/{pr}/comments` with `body`. |
-| Submitted review (default) | `POST /repos/{owner}/{repo}/pulls/{pr}/reviews` with reviewed `commit_id`, authorized `event`, summary `body`, and inline `comments`. Each inline entry contains `body`, `path`, `line`, and `side`; use `start_line`/`start_side` for a range. Anchor to the current diff. Omit `comments` for a summary-only review. |
+| Pending review (default) | `POST /repos/{owner}/{repo}/pulls/{pr}/reviews` with reviewed `commit_id`, summary `body`, and inline `comments`; omit `event`. Each inline entry contains `body`, `path`, `line`, and `side`; use `start_line`/`start_side` for a range. Anchor to the current diff. Omit `comments` for a summary-only review. |
+| Submit an existing pending review (explicit request only) | `POST /repos/{owner}/{repo}/pulls/{pr}/reviews/{review_id}/events` with the explicitly authorized `event` and any authorized summary `body`. |
 | Reply to an inline thread | `POST /repos/{owner}/{repo}/pulls/{pr}/comments` with `body` and `in_reply_to` identifying the root comment, not a reply-to-reply. |
 
 Preserve actual newlines through structured arguments or a payload/body file.
@@ -76,9 +87,10 @@ closely related concerns where that avoids noise.
 
 Verify each creation's ID, body, and intended thread or code location, and keep
 a local receipt outside the repository. If a POST times out or returns an
-ambiguous response, check the remote discussion before retrying; do not blindly
-repost. Return links to the posted comments and report skipped or uncertain
-operations accurately.
+ambiguous response, check remote reviews (including the authenticated user's
+pending review) and comments before retrying; do not blindly repost. Return a
+link to the saved review, or the PR if no review URL is available, and report
+its pending/submitted state and any skipped or uncertain operations accurately.
 
 ## Optional helper
 

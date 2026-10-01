@@ -5,7 +5,7 @@ code, classify feedback, or choose which comments to post; those are agent
 judgments governed by `SKILL.md`.
 
 Its `post` command writes each plan entry separately; it does not create a
-grouped review. For the default single-review workflow, use the review endpoint
+grouped review. For the default single pending review, use the review endpoint
 described in [the shared skill](../SKILL.md). Reserve this helper's posting mode
 for explicitly requested standalone comments or replies to existing threads.
 
