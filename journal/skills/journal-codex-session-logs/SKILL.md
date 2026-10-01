@@ -7,9 +7,9 @@ description: Collect local Codex session activity into the Obsidian journal and 
 
 This workflow uses stdlib Python 3.10+ and the installed Codex CLI. No venv or
 Python SDK is required. Read [the activity/storage contract](references/activity-format.md)
-when diagnosing records, filtering, or checkpoints. For setup, deployment state,
-sync verification, and laptop continuation, read
-[the laptop handoff](references/laptop-handoff.md).
+when diagnosing records, filtering, or checkpoints. For installation on both
+machines, sync verification, and troubleshooting, read
+[the installation guide](references/installation.md).
 
 ## Run the pipeline
 

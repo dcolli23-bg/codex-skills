@@ -16,7 +16,7 @@ existing vault sync transports those batches. Only the laptop edits daily notes.
 Implementation and tests are in `journal/skills/journal-codex-session-logs/`;
 systemd templates are in `journal/systemd/`.
 
-Follow [the laptop handoff](journal/skills/journal-codex-session-logs/references/laptop-handoff.md)
+Follow [the installation guide](journal/skills/journal-codex-session-logs/references/installation.md)
 to verify JSONL/JSON sync and model access, install the new jobs, and integrate the
 existing daily service. The installer uses a reversible `session-logs.conf`
 drop-in rather than rewriting the original service or wrapper documented below.

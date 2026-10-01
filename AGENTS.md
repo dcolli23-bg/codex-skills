@@ -213,8 +213,9 @@ ln -sfn ~/code/codex-skills/journal/AGENTS.md ~/journal/AGENTS.md
 
 The stdlib-only collector, Luna summary pipeline, note writer, tests, and machine
 installer live in `journal/skills/journal-codex-session-logs/`. Systemd templates
-live in `journal/systemd/`. Use that skill's `references/laptop-handoff.md` and
-`SYSTEMD_JOURNAL_SUMMARY_JOBS.md` for deployment and existing daily-job integration.
+live in `journal/systemd/`. Use that skill's `references/installation.md` and
+`SYSTEMD_JOURNAL_SUMMARY_JOBS.md` for installation on both machines and existing
+daily-job integration.
 Install with `scripts/install.py --device desktop` or `--device laptop` from the
 skill directory; add `--enable` only when deployment checks are complete. The
 installer exposes the skill through the normal journal-local symlink:
