@@ -80,9 +80,9 @@ When Dylan says “work in the RAD P2 container,” “work in rad p2,” or equ
 
 - The host source tree `/home/dcolli23/dorkspaces/rad_p2/src` maps to `/opt/bg/ws/src` in the container.
 - Perform all code and repository reads directly on the host source tree, including source searches, file inspection, `AGENTS.md` discovery, and Git inspection. Make normal source edits there as well.
-- Use the container only for builds, tests, ROS commands, environment-dependent dependency checks, and runtime inspection. Do not SSH into it merely to read the bind-mounted source.
-- Prefer SSH to `robot@localhost`; obtain the host SSH port from `dorkspaces/rad_p2/docker/docker-compose.yml` (currently 5828 by default).
-- Use a login/interactive shell or explicitly source the ROS and workspace setup before environment-sensitive commands.
+- Use the running `workspace` container only for builds, tests, ROS commands, environment-dependent dependency checks, and runtime inspection. Do not enter it merely to read the bind-mounted source.
+- From `/home/dcolli23/dorkspaces/rad_p2`, prefer `ds exec workspace`. RAD P2 uses the workspace container; `ds bash` is a shortcut for this configured target. Do not default to SSH or a system container.
+- For one-shot environment-sensitive commands, use `ds exec workspace "bash -lic 'cd /opt/bg/ws && <command>'"`, or explicitly source the ROS and workspace setup. Preserve the inner quotes so `ds` passes the full command to the initialized shell.
 - Read applicable repository `AGENTS.md` files beneath the host `src/` before editing.
 - Do not start, stop, rebuild, or otherwise disrupt the container or system unless Dylan asks, or the task requires it and the impact is stated first.
 
@@ -93,8 +93,9 @@ When Dylan says “work in GAI,” references `/home/dcolli23/dorkspaces/gai`, o
 - The host source tree `/home/dcolli23/dorkspaces/gai/src` maps to `/opt/bg/ws/src` in the containers.
 - Perform all code and repository reads directly on the host source tree, including source searches, file inspection, `AGENTS.md` discovery, and Git inspection. Make normal source edits there as well.
 - Use the relevant running system container only for builds, tests, ROS commands, environment-dependent dependency checks, and runtime inspection. Do not enter it merely to read the bind-mounted source.
-- Prefer `ds exec <system>-bg-processes`; do not default to SSH or the generic workspace container.
+- From `/home/dcolli23/dorkspaces/gai`, prefer `ds exec <system>-bg-processes`; do not default to SSH or the generic workspace container. The current `ds bash`, `ds build`, and `ds test` aliases target the workspace, so use explicit system-container execution instead.
 - For the RAD ABB FA system, use `ds exec rad_abb_fa-bg-processes`.
+- For one-shot environment-sensitive commands, use `ds exec <system>-bg-processes "bash -lic 'cd /opt/bg/ws && <command>'"`, or explicitly source the ROS and workspace setup. Preserve the inner quotes.
 - Determine the relevant running system container from the request and current state rather than guessing.
 - Read applicable repository `AGENTS.md` files beneath the host `src/` before editing.
 - Do not start, stop, restart, rebuild, update, or otherwise disrupt workspace or system containers unless Dylan asks, or the task requires it and the impact is stated first.

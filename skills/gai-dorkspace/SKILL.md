@@ -61,6 +61,25 @@ default to SSH or the generic `workspace` container.
 4. After entering, verify that the working directory is `/opt/bg/ws` before
    running environment-dependent commands.
 
+For a one-shot command that needs ROS initialization or shell aliases, use:
+
+```bash
+cd /home/dcolli23/dorkspaces/gai
+ds exec <system>-bg-processes "bash -lic 'cd /opt/bg/ws && <command>'"
+```
+
+`ds exec` joins its command arguments into a shell command; preserve the inner
+quotes so the entire payload reaches `bash -lic`. Quote literal `$` expressions
+for the container rather than allowing host-shell expansion. Without a terminal,
+plain `ds exec` uses `bash -c` and does not ensure interactive shell initialization.
+Alternatively, explicitly source the system's ROS and workspace setup before
+running executable commands that do not depend on shell aliases.
+
+The current `.dorkspacerc.yaml` sets `container_name: workspace`, so `ds bash`
+targets the generic workspace. The `ds build`, `ds test`, and `ds pytest` aliases
+also route through `ds bash`; use explicit `ds exec <system>-bg-processes`
+commands for system-container builds and tests.
+
 ## Work safely
 
 - State the selected GAI system container in the first substantive progress

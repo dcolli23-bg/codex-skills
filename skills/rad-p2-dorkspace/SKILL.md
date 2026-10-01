@@ -5,7 +5,7 @@ description: Work safely in Dylan's RAD P2 Dorkspace container. Use when the use
 
 # RAD P2 Dorkspace
 
-Use the RAD P2 container as the active development environment until the user selects another environment.
+Use the RAD P2 `workspace` container as the active development environment until the user selects another environment.
 
 ## Required host check
 
@@ -28,29 +28,51 @@ The workspace is bind-mounted, so edits in either location affect the same files
 
 Use the container only for builds, tests, ROS commands, environment-dependent dependency checks, and runtime inspection.
 
-## Connect when container execution is required
+## Use the workspace container for execution
 
-1. Read the host-side `docker/docker-compose.yml` before connecting. Its SSH mapping is currently `${BG_SSH_PORT:-5828}:${BG_SSH_PORT:-5824}`: use the host-side value, normally port `5828`.
-2. Verify access without changing state:
+Run Dorkspace commands from `/home/dcolli23/dorkspaces/rad_p2`. Prefer
+`ds exec workspace`, targeting the running workspace container (currently
+`rad_p2-workspace-1`). Unlike GAI, RAD P2 uses the workspace rather than a
+system's `bg-processes` container. Do not default to SSH.
+
+1. Verify access and shell initialization without changing container state:
 
    ```bash
-   ssh -p 5828 -o BatchMode=yes -o ConnectTimeout=5 robot@localhost 'printf "user=%s BG_ROOT=%s\\n" "$USER" "$BG_ROOT"; test -d /opt/bg/ws/src'
+   cd /home/dcolli23/dorkspaces/rad_p2
+   ds exec workspace "bash -lic 'cd /opt/bg/ws && pwd && whoami && printenv ROS_DISTRO && type bgbuild && test -d src'"
    ```
 
-3. For interactive development, use:
+2. For interactive development with a terminal, use:
 
    ```bash
-   ssh -tt -p 5828 robot@localhost
+   cd /home/dcolli23/dorkspaces/rad_p2
+   ds exec workspace
+   # Inside the container:
    cd /opt/bg/ws
    ```
 
-4. For a one-shot command that needs aliases and ROS initialization, use a login interactive shell:
+   `ds bash` is also valid: it expands to `ds exec ${DS_CONTAINER_NAME}`,
+   and this workspace's `.dorkspacerc.yaml` sets `container_name: workspace`.
+
+3. For a one-shot command that needs aliases and ROS initialization, use:
 
    ```bash
-   ssh -p 5828 robot@localhost "bash -lic 'cd /opt/bg/ws && <command>'"
+   cd /home/dcolli23/dorkspaces/rad_p2
+   ds exec workspace "bash -lic 'cd /opt/bg/ws && <command>'"
    ```
 
-A plain non-interactive SSH command does not fully initialize the ROS environment. In a fully initialized shell, `ROS_DISTRO` is `humble`; `bgbuild` is available as a shell alias. If shell initialization is unsuitable, explicitly source `/opt/ros/humble/setup.bash` and `/opt/bg/ws/install/setup.bash` before running the command.
+`ds exec` joins its command arguments into a shell command; preserve the inner
+quotes shown above so the entire payload reaches `bash -lic`. Quote literal
+`$` expressions for the container rather than allowing host-shell expansion.
+A plain noninteractive `ds exec` uses `bash -c` and does not load the `bgbuild`
+alias. In a fully initialized shell, `ROS_DISTRO` is `humble` and `bgbuild` is
+available as a shell alias. If shell initialization is unsuitable, explicitly
+source `/opt/ros/humble/setup.bash` and `/opt/bg/ws/install/setup.bash` before
+running the command, using executable commands rather than shell aliases.
+
+The current `ds build` and `ds test` aliases also select the workspace through
+`ds bash`, but their RAD P2 definitions do not forward extra arguments. For
+targeted builds or tests, use the explicit one-shot form above.
 
 ## Work safely
 
@@ -58,5 +80,4 @@ A plain non-interactive SSH command does not fully initialize the ROS environmen
 - Inspect repository status on the host before changing files and preserve unrelated modifications. The top-level `rad_p2` workspace may contain local, uncommitted changes.
 - Do not use host tools as evidence that a ROS build or test works in the container.
 - Do not start, stop, restart, rebuild, or update the Dorkspace or system containers unless the user explicitly requests it, or the task requires it and the impact is stated first.
-- Prefer SSH. Use `ds bash` only as a fallback when SSH is unavailable; run Dorkspace commands from within `/home/dcolli23/dorkspaces/rad_p2`.
-- If SSH verification fails, report the failure and ask before lifecycle actions. Do not silently restart the container.
+- If workspace access fails or the container is not running, report the failure and ask before lifecycle actions. Do not silently start or restart the container.
