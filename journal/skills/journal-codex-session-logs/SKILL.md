@@ -47,6 +47,12 @@ iterative compression loop. Closed days are reconciled from filtered records;
 late synced activity triggers reconciliation again and queues the normal daily
 summary for the next daily job.
 
+Model calls use short source references, expanded to full evidence/session IDs
+in Python before saving. Daily synthesis makes one call over chunk-summary
+topics. If its compact prompt and schema exceed 64,000 characters, stop and
+review the input budget; preserve the existing note and cached chunks. Do not
+restore recursive consolidation. See the storage contract for provenance details.
+
 Only replace the generated `## Codex Session Logs` block under
 `# Where I'm Leaving Off`. Give each topic a heading, a concise Summary paragraph,
 and a separate Where I left off paragraph with its latest stopping point and any

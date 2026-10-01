@@ -20,6 +20,19 @@ batches; the laptop deduplicates stable event IDs. Do not edit batches in place.
 All summary artifacts retain evidence/session IDs; resolve those against JSONL
 records to find the machine, session, original byte offset, and source text.
 
+Model calls use temporary short references instead of these full IDs. Evidence
+chunks expose `e1`, `e2`, etc.; daily synthesis exposes `t1`, `t2`, etc. for
+chunk-summary topics. Python validates returned references and expands them to
+full evidence IDs and derived session IDs before saving an artifact. Synthesis
+citations inherit the evidence of their selected chunk topics; they do not imply
+that each inherited message independently supports every sentence.
+
+The model receives short session labels for grouping, timestamps, message kinds,
+text, and a compact directory-context lookup. Collector schema, device, day, byte
+offsets, and full IDs stay outside its input. Synthesis receives topic prose,
+session labels, and chunk time ranges. Short references are local to one call;
+they are never persistent identifiers or replacements for immutable evidence.
+
 Local state is under `~/.local/state/codex-activity/`:
 
 - `checkpoints.json`: source-file byte offsets, working directories, exclusions.
@@ -72,7 +85,12 @@ replay safe. Choose a new state directory in a temporary config for a dry run.
 Evidence is divided into bounded per-session chunks. Inputs, model, reasoning,
 prompt version, and stage identify cached results. Adding activity normally
 reuses previous complete chunks and recomputes only the changing tail. The final
-synthesis considers the whole day. Closed-day reconciliation uses fresh evidence
+synthesis considers the whole day in one call over compact topic references.
+Its input limit is 64,000 characters including the prompt and output schema,
+separate from the 24,000-character raw-record chunk limit. If synthesis exceeds
+that limit, the run stops with an explicit error, preserves the note and cached
+chunks, and requires input-budget/design review. It never recursively compresses
+summaries. Closed-day reconciliation uses fresh evidence
 chunk prompts; it does not trust a repeatedly rewritten session summary. Chunk
 artifacts are never overwritten by synthesis.
 
