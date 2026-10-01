@@ -225,6 +225,10 @@ ln -sfn ~/code/codex-skills/journal/skills/journal-codex-session-logs ~/journal/
 readlink -f ~/journal/.codex/skills/journal-codex-session-logs
 ```
 
+The skill's `AGENTS.md` documents implementation maintenance, including summary
+cache versioning. It is exposed through the same directory symlink and needs no
+separate installation.
+
 The desktop collects independently. Only the laptop summarizes and writes notes;
 vault sync carries JSONL batches. Machine config lives in
 `~/.config/codex-activity/config.json`, and checkpoints/locks live in
