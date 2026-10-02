@@ -161,7 +161,10 @@ Specify the container workflow to use, or retain an explicit selection already
 active in the conversation; the skills must ask rather than infer an environment.
 Additional source context follows `home-AGENTS.md`'s BG Source Context guidance,
 including the standalone `~/code/` exception and checkout revision checks in both
-skills. Missing BG bootstrapping or the required Python/C++ logger on
+skills. The readiness gate may use a separate detached worktree at the verified
+PR head when the selected checkout differs or is dirty and the selected workflow
+can access the worktree; it leaves Dylan's checkout intact. Missing BG
+bootstrapping or the required Python/C++ logger on
 affected production paths is a blocking finding. These review rules take effect
 through the existing symlinks. Nonstandard `setup.py` customization or Python
 package discovery layout in added or modified BG-owned packages is also blocking;
