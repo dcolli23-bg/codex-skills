@@ -10,13 +10,15 @@ these criteria.
 
 ## Python packaging and package layout
 
-- **Blocking requirement:** BG-owned Python packages added or modified by the
-  PR must use the standard BG setup and package discovery layout. Flag any
-  departure as a **blocker** and request correction before merge, even when
-  the PR's new functionality relies on pre-existing nonstandard packaging.
-  A working build does not waive this convention. Only an explicit exception
-  from Dylan permits a deviation; keep unrelated legacy and third-party
-  packages outside the review's scope.
+- **Blocking requirement when `setup.py` changes:** Apply the standard BG setup
+  and package discovery rule only if the PR adds, deletes, or edits the BG-owned
+  package's `setup.py` in any way, including a comment or header edit. Then
+  flag any departure as a **blocker** and request correction before merge. A
+  working build does not waive this convention; only an explicit exception
+  from Dylan permits a deviation. If `setup.py` is untouched, do not raise a
+  setup or package-discovery blocker merely because the PR changes other files
+  in that package or relies on its existing packaging. Keep unrelated legacy
+  and third-party packages outside the review's scope.
 - Keep `setup.py` to the standard helper invocation, apart from normal headers:
 
   ```python

@@ -167,9 +167,10 @@ can access the worktree; it leaves Dylan's checkout intact. Missing BG
 bootstrapping or the required Python/C++ logger on
 affected production paths is a blocking finding. These review rules take effect
 through the existing symlinks. Nonstandard `setup.py` customization or Python
-package discovery layout in added or modified BG-owned packages is also blocking;
-the criteria document the minimal BG helper invocation, source symlink convention,
-and dependency declarations in `package.xml`. Import-path manipulation in
+package discovery layout is blocking only when the PR changes that BG-owned
+package's `setup.py` in any way; the criteria document the minimal BG helper
+invocation, source symlink convention, and dependency declarations in
+`package.xml`. Import-path manipulation in
 application code, scripts, or tests is also blocking; require normal package
 imports through `bg_build` instead of `sys.path` or filesystem-loader workarounds.
 Both skills draft findings without editing or posting unless explicitly requested.
