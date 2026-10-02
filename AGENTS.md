@@ -229,6 +229,14 @@ Use this pattern:
 ln -sfn ~/code/codex-skills/journal/skills/<skill-name> ~/journal/.codex/skills/<skill-name>
 ```
 
+The Jira issue-authoring skill is maintained at
+`journal/skills/jira-ticket-authoring/`. Keep its journal-local symlink installed:
+
+```bash
+ln -sfn ~/code/codex-skills/journal/skills/jira-ticket-authoring ~/journal/.codex/skills/jira-ticket-authoring
+readlink -f ~/journal/.codex/skills/jira-ticket-authoring
+```
+
 The installed `~/journal/AGENTS.md` begins with a source and editing workflow note
 that points back to this repository and its validation, commit, and push
 requirements for that instruction file. Preserve that note and the symlink when

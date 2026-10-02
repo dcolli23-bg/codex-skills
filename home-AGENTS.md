@@ -35,6 +35,8 @@ Invoke `/home/dcolli23/.codex/skills/bga-readonly/scripts/bga-readonly` directly
 
 Inspect the relevant connection's permissions and try its approved read-only GitHub, Jira, or Confluence endpoints before concluding that a repository, PR review, Jira issue, or Confluence page is inaccessible. If that route is unavailable or lacks access, report the specific limitation rather than assuming that an app installation or connection grants effective access. For writes or operations the wrapper does not support, use `bga-connections` and follow its authorization requirements. Read-only approval does not authorize posting reviews, comments, or other changes.
 
+When drafting, creating, or editing Berkshire Grey Jira issues, follow the journal-local `jira-ticket-authoring` skill at `/home/dcolli23/journal/.codex/skills/jira-ticket-authoring/SKILL.md` for shared ticket text and clickable references.
+
 ## BG Source Context
 
 When a BG task associated with a configured Dorkspace needs additional source
