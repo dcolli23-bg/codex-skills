@@ -1,6 +1,6 @@
 ---
 name: github-pr-comments
-description: Post requested GitHub PR discussion comments, inline review comments, review replies, and review summaries with [codex] attribution. Shared posting workflow for bg-pr-readiness and pr-review-followup; use when posting is requested, not for read-only reviews or audits.
+description: Post requested GitHub PR discussion comments, inline review comments, review replies, and review summaries with [codex] attribution. Shared posting workflow for bg-pr-readiness, bg-pr-review, and pr-review-followup; use when posting is requested, not for read-only reviews or audits.
 ---
 
 # GitHub PR Comments
@@ -19,6 +19,10 @@ comments, replies, and nonempty review-summary bodies. For a pending or submitte
 review, prefix **each** entry in `comments[]` as well as any summary body;
 prefixing only the summary is insufficient. Preserve an existing leading `[codex]` rather than
 adding it twice. Do not change historical comments merely to add attribution.
+For new findings from `bg-pr-readiness` or `bg-pr-review`, put a concise rule
+or finding title on that first line: `[codex] <title>`. Put the explanation in
+the following paragraph. Do not impose that title format on replies to existing
+threads or unrelated standalone comments.
 
 ## Markdown formatting
 

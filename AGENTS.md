@@ -139,36 +139,44 @@ plans, and receipts outside this repository.
 Install `github-pr-comments` below as well; it owns the shared helper and
 posting workflow, including the compatibility `pr_review.py` entry point.
 
-## BG PR Readiness Installation
+## BG PR Review Skills Installation
 
-The standalone personal review skill lives in `skills/bg-pr-readiness/`. Expose
-it through the personal-skill symlink:
+The criteria-only readiness gate lives in `skills/bg-pr-readiness/`; the general
+review skill lives in `skills/bg-pr-review/`. They share the readiness criteria
+in `skills/bg-pr-readiness/references/review-criteria.md`. Expose both through
+the personal-skill symlink pattern:
 
 ```bash
 ln -sfn ~/code/codex-skills/skills/bg-pr-readiness ~/.codex/skills/bg-pr-readiness
+ln -sfn ~/code/codex-skills/skills/bg-pr-review ~/.codex/skills/bg-pr-review
 readlink -f ~/.codex/skills/bg-pr-readiness
+readlink -f ~/.codex/skills/bg-pr-review
 ```
 
-Use `$bg-pr-readiness` for a fresh review of a BG PR or proposed change.
+Use `$bg-pr-readiness` for an explicit-rule gate on a BG PR or proposed change;
+it reports only failures of the shared criteria. Use `$bg-pr-review` for a fresh
+general review that also applies those criteria. Neither skill audits existing
+review threads; use `$pr-review-followup` for that.
 Specify the container workflow to use, or retain an explicit selection already
-active in the conversation; the skill must ask rather than infer an environment.
+active in the conversation; the skills must ask rather than infer an environment.
 Additional source context follows `home-AGENTS.md`'s BG Source Context guidance,
-including the standalone `~/code/` exception and checkout revision checks in the
-review skill. Missing BG bootstrapping or the required Python/C++ logger on
+including the standalone `~/code/` exception and checkout revision checks in both
+skills. Missing BG bootstrapping or the required Python/C++ logger on
 affected production paths is a blocking finding. These review rules take effect
 through the existing symlinks. Nonstandard `setup.py` customization or Python
 package discovery layout in added or modified BG-owned packages is also blocking;
-the skill documents the minimal BG helper invocation, source symlink convention,
+the criteria document the minimal BG helper invocation, source symlink convention,
 and dependency declarations in `package.xml`. Import-path manipulation in
 application code, scripts, or tests is also blocking; require normal package
 imports through `bg_build` instead of `sys.path` or filesystem-loader workarounds.
-It drafts findings without editing or posting unless explicitly requested;
-`pr-review-followup` is for auditing existing review feedback instead.
+Both skills draft findings without editing or posting unless explicitly requested.
+Review findings begin with `[codex]` and a concise rule or finding title, with
+the explanation below.
 Install `github-pr-comments` below for its shared posting workflow.
 
 ## GitHub PR Comments Installation
 
-Both PR review skills use `skills/github-pr-comments/` for posting standalone
+The PR review and follow-up skills use `skills/github-pr-comments/` for posting standalone
 PR discussion comments, inline review comments, replies, and review summaries.
 Every posted comment begins with `[codex]`.
 Default to one pending review per PR posting batch, grouping inline findings
