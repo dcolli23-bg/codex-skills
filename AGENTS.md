@@ -299,6 +299,9 @@ The home instructions route BG GitHub, Jira, and Confluence reads through
 organization-managed `bga-connections` skill so both the wrapper and its upstream
 client are available. For additional BG source and deployment context, they route
 to Dylan's explicitly selected Dorkspace workflow rather than GitHub source reads.
+They also set a persistent OpenAI documentation access preference: open known
+official pages directly, and use official search only when the relevant page is
+unknown or insufficient.
 
 Track home-directory-wide Codex instructions at:
 
