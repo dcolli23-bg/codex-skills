@@ -173,7 +173,12 @@ invocation, source symlink convention, and dependency declarations in
 `package.xml`. Import-path manipulation in
 application code, scripts, or tests is also blocking; require normal package
 imports through `bg_build` instead of `sys.path` or filesystem-loader workarounds.
-Both skills draft findings without editing or posting unless explicitly requested.
+The readiness gate posts a minimal `COMMENT` review on a verified clean PR,
+tagging `@dcolli23-bg` for full review. It does not approve or request changes;
+it skips the pass message when a material criterion remains unverified or a
+matching review already exists for that head. Findings still require an
+explicit posting request. The general review drafts findings without editing
+or posting unless explicitly requested.
 Review findings begin with `[codex]` and a concise rule or finding title, with
 the explanation below.
 Install `github-pr-comments` below for its shared posting workflow.
@@ -183,9 +188,11 @@ Install `github-pr-comments` below for its shared posting workflow.
 The PR review and follow-up skills use `skills/github-pr-comments/` for posting standalone
 PR discussion comments, inline review comments, replies, and review summaries.
 Every posted comment begins with `[codex]`.
-Default to one pending review per PR posting batch, grouping inline findings
+Default to one pending review per PR findings batch, grouping inline findings
 and general feedback for Dylan to inspect and submit manually in GitHub. Omit
-the review creation `event`; submission requires an explicit request.
+the review creation `event`; submission requires an explicit request. The
+passing readiness handoff is the sole standing exception: it posts a submitted
+`COMMENT` review with no inline findings.
 Standalone comments and existing thread replies remain available when explicitly
 requested. This default is maintained in the shared skill and takes effect
 through its existing symlink; the optional helper still only posts standalone

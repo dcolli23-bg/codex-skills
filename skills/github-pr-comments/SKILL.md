@@ -1,13 +1,15 @@
 ---
 name: github-pr-comments
-description: Post requested GitHub PR discussion comments, inline review comments, review replies, and review summaries with [codex] attribution. Shared posting workflow for bg-pr-readiness, bg-pr-review, and pr-review-followup; use when posting is requested, not for read-only reviews or audits.
+description: Post authorized GitHub PR comments, review findings, replies, and summaries with [codex] attribution. Also handles the standing passing-readiness COMMENT review from bg-pr-readiness; other posting requires a request.
 ---
 
 # GitHub PR Comments
 
 Post only the comments the user has authorized. A request to review or audit a
-PR does not authorize posting. Reuse existing authorization without asking for
-another confirmation; tool approvals and provider permissions still apply.
+PR does not authorize posting findings. The passing `bg-pr-readiness` review
+defined below is a standing exception requested by Dylan. Reuse existing
+authorization without asking for another confirmation; tool approvals and
+provider permissions still apply.
 Posting comments does not authorize editing code, resolving threads, changing
 the PR description, approving/requesting changes, or merging.
 
@@ -47,9 +49,21 @@ intervening changes or replies. Reassess if the head changed. Read existing
 comments to avoid semantic duplicates, not just exact copies; a useful existing
 explanation can be left alone.
 
+## Passing readiness review
+
+When `bg-pr-readiness` verifies that a PR passes, its standing instruction
+authorizes one submitted review with `event: "COMMENT"`, the verified head as
+`commit_id`, and exactly the body specified in that skill. Omit inline
+comments. This is a handoff for Dylan's full review, not approval of the PR.
+Do not use `APPROVE` or `REQUEST_CHANGES`. If the head changed, a matching pass
+review already exists for that head, or the authenticated user has a pending
+review that would be affected, do not post; report the reason. Never submit,
+delete, or replace a pending review to make room for the pass message. Verify
+the new review is `COMMENTED` on the intended head and record its URL/ID.
+
 ## Group comments into one pending review
 
-By default, gather all authorized findings for a PR and save them together in
+For findings, gather all authorized comments for a PR and save them together in
 **one pending review**. Put code-specific findings in its `comments` array and
 general findings in its summary `body`. Create it with
 `POST /repos/{owner}/{repo}/pulls/{pr}/reviews` and the reviewed `commit_id`;
@@ -59,9 +73,9 @@ must still start with `[codex]`.
 
 Dylan will inspect and edit the pending review in GitHub and submit it manually.
 Authorization to post findings is authorization to save this pending review,
-not to submit it. Submit only when Dylan explicitly requests submission; use
-`COMMENT` unless he explicitly authorizes another verdict. Do not publish
-individual findings before creating the pending review.
+not to submit it. Submit finding reviews only when Dylan explicitly requests
+submission; use `COMMENT` unless he explicitly authorizes another verdict. Do
+not publish individual findings before creating the pending review.
 
 Check for an existing pending review by the authenticated user before creating
 one. Preserve its draft comments and summary. Reuse it only through a supported
@@ -89,6 +103,7 @@ Use these endpoints for the selected posting mode:
 | Comment type | GitHub REST target and placement |
 | --- | --- |
 | Standalone PR discussion | `POST /repos/{owner}/{repo}/issues/{pr}/comments` with `body`. |
+| Passing readiness review | `POST /repos/{owner}/{repo}/pulls/{pr}/reviews` with reviewed `commit_id`, the exact pass `body`, and `event: "COMMENT"`; omit `comments`. |
 | Pending review (default) | `POST /repos/{owner}/{repo}/pulls/{pr}/reviews` with reviewed `commit_id`, summary `body`, and inline `comments`; omit `event`. Each inline entry contains `body`, `path`, `line`, and `side`; use `start_line`/`start_side` for a range. Anchor to the current diff. Omit `comments` for a summary-only review. |
 | Submit an existing pending review (explicit request only) | `POST /repos/{owner}/{repo}/pulls/{pr}/reviews/{review_id}/events` with the explicitly authorized `event` and any authorized summary `body`. |
 | Reply to an inline thread | `POST /repos/{owner}/{repo}/pulls/{pr}/comments` with `body` and `in_reply_to` identifying the root comment, not a reply-to-reply. |

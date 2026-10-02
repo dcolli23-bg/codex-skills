@@ -1,6 +1,6 @@
 ---
 name: bg-pr-readiness
-description: Run a criteria-only readiness gate on a Berkshire Grey PR or proposed change. Report only violations of the shared BG review criteria; use bg-pr-review for a general code review and pr-review-followup for existing feedback.
+description: Run a criteria-only readiness gate on a Berkshire Grey PR or proposed change. A clean PR gate posts a minimal COMMENT review tagging Dylan for full review; use bg-pr-review for a general code review and pr-review-followup for existing feedback.
 ---
 
 # BG PR Readiness Gate
@@ -11,9 +11,10 @@ of those rules. Do not turn this gate into a general code review or report an
 incidental issue that has no matching rule. The broader
 [bg-pr-review skill](../bg-pr-review/SKILL.md) handles general review.
 Use the rule's descriptive name in findings; do not assign or publish rule IDs.
-This personal prototype is read-only by default. A request to review does not
-authorize editing code, posting comments, submitting a GitHub review, changing
-the PR description, merging, or running hardware.
+The only automatic write authorized by this skill is the passing PR review
+specified below. A request to run the gate does not authorize editing code,
+posting findings, approving or requesting changes, changing the PR description,
+merging, or running hardware.
 
 ## Establish the review target
 
@@ -92,6 +93,10 @@ merely because `bootstrap_default` appears in the code.
 
 ## Report
 
+- A PR passes only when the gate found no rule violation or unresolved question
+  and no material unverified applicable rule that could change that conclusion.
+  An inapplicable rule does not prevent a pass. Do not declare a pass for a
+  local branch/diff or proposed change without a PR.
 - Lead with actionable rule violations, ordered by impact. For each, give the
   rule name, a specific path/line or PR section, the failure mode, evidence,
   and a concrete requested change. Label **blocker** or **non-blocking**.
@@ -104,7 +109,24 @@ merely because `bootstrap_default` appears in the code.
 - For a PR, separately note template completeness and any absent deployment
   or real-data test evidence. Keep the review concise and avoid counting
   multiple comments on one issue as separate findings.
-- When posting is explicitly requested, read and use the shared
+- For a passing PR, post one submitted GitHub review with `event: "COMMENT"`,
+  not `APPROVE` or `REQUEST_CHANGES`, using the shared
+  [github-pr-comments skill](../github-pr-comments/SKILL.md). Use only this body:
+
+  ```text
+  [codex] passed Dylan's PR review readiness gate
+
+  @dcolli23-bg Please review this PR fully now.
+  ```
+
+  This standing instruction authorizes that pass review when Dylan asks to run
+  the readiness gate on an open PR, unless he asks to keep that run read-only;
+  no further conversational confirmation is needed. Recheck the PR head and
+  prior reviews before posting. Do not post a duplicate pass review for the
+  same head, submit an existing pending review, or post a pass if the head
+  changed after the check. If posting is unavailable, report the verified pass
+  and the reason no review was posted.
+- For findings, post only when explicitly requested. Read and use the shared
   [github-pr-comments skill](../github-pr-comments/SKILL.md) for standalone
   comments, inline comments, and reviews. It owns attribution and posting
   mechanics, including the default single pending review for Dylan to inspect
