@@ -139,39 +139,60 @@ plans, and receipts outside this repository.
 Install `github-pr-comments` below as well; it owns the shared helper and
 posting workflow, including the compatibility `pr_review.py` entry point.
 
-## BG PR Readiness Installation
+## BG PR Review Skills Installation
 
-The standalone personal review skill lives in `skills/bg-pr-readiness/`. Expose
-it through the personal-skill symlink:
+The criteria-only readiness gate lives in `skills/bg-pr-readiness/`; the general
+review skill lives in `skills/bg-pr-review/`. They share the readiness criteria
+in `skills/bg-pr-readiness/references/review-criteria.md`. Expose both through
+the personal-skill symlink pattern:
 
 ```bash
 ln -sfn ~/code/codex-skills/skills/bg-pr-readiness ~/.codex/skills/bg-pr-readiness
+ln -sfn ~/code/codex-skills/skills/bg-pr-review ~/.codex/skills/bg-pr-review
 readlink -f ~/.codex/skills/bg-pr-readiness
+readlink -f ~/.codex/skills/bg-pr-review
 ```
 
-Use `$bg-pr-readiness` for a fresh review of a BG PR or proposed change.
+Use `$bg-pr-readiness` for an explicit-rule gate on a BG PR or proposed change;
+it reports only failures of the shared criteria. Use `$bg-pr-review` for a fresh
+general review that also applies those criteria. Neither skill audits existing
+review threads; use `$pr-review-followup` for that.
 Specify the container workflow to use, or retain an explicit selection already
-active in the conversation; the skill must ask rather than infer an environment.
+active in the conversation; the skills must ask rather than infer an environment.
 Additional source context follows `home-AGENTS.md`'s BG Source Context guidance,
-including the standalone `~/code/` exception and checkout revision checks in the
-review skill. Missing BG bootstrapping or the required Python/C++ logger on
+including the standalone `~/code/` exception and checkout revision checks in both
+skills. The readiness gate may use a separate detached worktree at the verified
+PR head when the selected checkout differs or is dirty and the selected workflow
+can access the worktree; it leaves Dylan's checkout intact. Missing BG
+bootstrapping or the required Python/C++ logger on
 affected production paths is a blocking finding. These review rules take effect
 through the existing symlinks. Nonstandard `setup.py` customization or Python
-package discovery layout in added or modified BG-owned packages is also blocking;
-the skill documents the minimal BG helper invocation, source symlink convention,
-and dependency declarations in `package.xml`.
-It drafts findings without editing or posting unless explicitly requested;
-`pr-review-followup` is for auditing existing review feedback instead.
+package discovery layout is blocking only when the PR changes that BG-owned
+package's `setup.py` in any way; the criteria document the minimal BG helper
+invocation, source symlink convention, and dependency declarations in
+`package.xml`. Import-path manipulation in
+application code, scripts, or tests is also blocking; require normal package
+imports through `bg_build` instead of `sys.path` or filesystem-loader workarounds.
+The readiness gate posts a minimal `COMMENT` review on a verified clean PR,
+tagging `@dcolli23-bg` for full review. It does not approve or request changes;
+it skips the pass message when a material criterion remains unverified or a
+matching review already exists for that head. Findings still require an
+explicit posting request. The general review drafts findings without editing
+or posting unless explicitly requested.
+Review findings begin with `[codex]` and a concise rule or finding title, with
+the explanation below.
 Install `github-pr-comments` below for its shared posting workflow.
 
 ## GitHub PR Comments Installation
 
-Both PR review skills use `skills/github-pr-comments/` for posting standalone
+The PR review and follow-up skills use `skills/github-pr-comments/` for posting standalone
 PR discussion comments, inline review comments, replies, and review summaries.
 Every posted comment begins with `[codex]`.
-Default to one pending review per PR posting batch, grouping inline findings
+Default to one pending review per PR findings batch, grouping inline findings
 and general feedback for Dylan to inspect and submit manually in GitHub. Omit
-the review creation `event`; submission requires an explicit request.
+the review creation `event`; submission requires an explicit request. The
+passing readiness handoff is the sole standing exception: it posts a submitted
+`COMMENT` review with no inline findings.
 Standalone comments and existing thread replies remain available when explicitly
 requested. This default is maintained in the shared skill and takes effect
 through its existing symlink; the optional helper still only posts standalone
@@ -206,6 +227,14 @@ Use this pattern:
 
 ```bash
 ln -sfn ~/code/codex-skills/journal/skills/<skill-name> ~/journal/.codex/skills/<skill-name>
+```
+
+The Jira issue-authoring skill is maintained at
+`journal/skills/jira-ticket-authoring/`. Keep its journal-local symlink installed:
+
+```bash
+ln -sfn ~/code/codex-skills/journal/skills/jira-ticket-authoring ~/journal/.codex/skills/jira-ticket-authoring
+readlink -f ~/journal/.codex/skills/jira-ticket-authoring
 ```
 
 The installed `~/journal/AGENTS.md` begins with a source and editing workflow note
@@ -278,6 +307,9 @@ The home instructions route BG GitHub, Jira, and Confluence reads through
 organization-managed `bga-connections` skill so both the wrapper and its upstream
 client are available. For additional BG source and deployment context, they route
 to Dylan's explicitly selected Dorkspace workflow rather than GitHub source reads.
+They also set a persistent OpenAI documentation access preference: open known
+official pages directly, and use official search only when the relevant page is
+unknown or insufficient.
 
 Track home-directory-wide Codex instructions at:
 

@@ -43,12 +43,15 @@ Always include source references in `### Background` when they exist, except loc
 - local logs, screenshots, or other non-Markdown artifacts when relevant
 
 Do not include local Markdown-file paths, Obsidian links, or references to `.md` notes in Jira descriptions, comments, or user-facing drafts. Use those notes as internal evidence only.
+Do not cite a personal standup or other journal note by title or date as the source of a requirement. Put the actionable facts directly in the ticket, and cite shared sources when useful.
 
-Format every URL in ticket descriptions, Jira comments, and user-facing ticket drafts as a Markdown hyperlink. Do not leave bare URLs in drafted or written ticket content. Prefer descriptive labels that name the destination, for example:
+Make every URL in ticket descriptions, Jira comments, and user-facing drafts clickable. Use Markdown hyperlinks in drafts and Atlassian Document Format `link` marks when writing through Jira API v3. Do not leave bare URLs in drafted or written ticket content. Prefer descriptive labels that name the destination, for example:
 - `Source thread: [Slack thread about <topic>](<url>)`
 - `Pick Inspector: [<site/system> pick inspector example](<url>)`
 - `Related ticket: [RSPS-1234 - <summary>](<url>)`
 - `PR: [berkshiregrey/<repo>#1234](<url>)`
+
+Make every relevant Jira issue key in a ticket description or comment clickable, including keys mentioned in prose. Use a link to its Jira browse URL; an issue relationship alone does not make a plain key in the description a hyperlink. Read the saved issue before finishing to verify the links render as links.
 
 ## Workflow
 

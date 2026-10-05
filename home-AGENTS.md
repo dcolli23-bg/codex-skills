@@ -21,6 +21,12 @@ Search `acronyms/` first. If a term remains unresolved, use the context availabl
 
 Do not treat standalone first names in `UNKNOWN_ACRONYMS.md` as blocking unless their identity is necessary for the task.
 
+## Official OpenAI Documentation Access
+
+For OpenAI Docs requests, open a known relevant official documentation page directly when its URL is already available from the conversation or a trusted reference. Search the official documentation only when the page is unknown, may be outdated, or does not answer the question. This overrides the bundled `openai-docs` skill's search-first step for known pages; still read the actual page and cite it when making documentation claims.
+
+If the in-app browser is unavailable, use direct retrieval from an official OpenAI documentation domain. Do not retry that browser or probe a sitemap URL as a routine fallback. If sandbox networking blocks the direct retrieval, request the required escalation for that command.
+
 ## Berkshire Grey GitHub, Jira, and Confluence Access
 
 For GitHub access involving Berkshire Grey repositories or Dylan's `dcolli23-bg` account, and for Berkshire Grey Jira and Confluence access, prefer BG AI Gateway over the general GitHub or Atlassian connectors. Use the personal `bga-readonly` skill for connection discovery, permission inspection, and approved provider GET requests, including GitHub PR descriptions, reviews, comments, and files; Jira issues and comments; and Confluence pages and comments. Read its instructions and the organization-managed `bga-connections` skill's access guidance; the wrapper delegates to that client without modifying it.
@@ -28,6 +34,8 @@ For GitHub access involving Berkshire Grey repositories or Dylan's `dcolli23-bg`
 Invoke `/home/dcolli23/.codex/skills/bga-readonly/scripts/bga-readonly` directly. When network escalation is needed, suggest that executable alone as the reusable approval prefix, without a connection UUID or endpoint. Use `--output` to save complete responses instead of shell redirection, which can prevent prefix matching.
 
 Inspect the relevant connection's permissions and try its approved read-only GitHub, Jira, or Confluence endpoints before concluding that a repository, PR review, Jira issue, or Confluence page is inaccessible. If that route is unavailable or lacks access, report the specific limitation rather than assuming that an app installation or connection grants effective access. For writes or operations the wrapper does not support, use `bga-connections` and follow its authorization requirements. Read-only approval does not authorize posting reviews, comments, or other changes.
+
+When drafting, creating, or editing Berkshire Grey Jira issues, follow the journal-local `jira-ticket-authoring` skill at `/home/dcolli23/journal/.codex/skills/jira-ticket-authoring/SKILL.md` for shared ticket text and clickable references.
 
 ## BG Source Context
 

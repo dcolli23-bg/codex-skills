@@ -3,16 +3,22 @@
 Apply these to changed BG-owned code and the deployments it affects. Cite the
 specific code or PR section behind each finding. Questions are preferable to
 assertions when the runtime path or team convention has not been verified.
+For the readiness gate, report a violation only when a stated rule applies and
+the change demonstrably fails it. Examples and prior PRs illustrate rules; they
+do not add new ones. The general PR review may also report findings outside
+these criteria.
 
 ## Python packaging and package layout
 
-- **Blocking requirement:** BG-owned Python packages added or modified by the
-  PR must use the standard BG setup and package discovery layout. Flag any
-  departure as a **blocker** and request correction before merge, even when
-  the PR's new functionality relies on pre-existing nonstandard packaging.
-  A working build does not waive this convention. Only an explicit exception
-  from Dylan permits a deviation; keep unrelated legacy and third-party
-  packages outside the review's scope.
+- **Blocking requirement when `setup.py` changes:** Apply the standard BG setup
+  and package discovery rule only if the PR adds, deletes, or edits the BG-owned
+  package's `setup.py` in any way, including a comment or header edit. Then
+  flag any departure as a **blocker** and request correction before merge. A
+  working build does not waive this convention; only an explicit exception
+  from Dylan permits a deviation. If `setup.py` is untouched, do not raise a
+  setup or package-discovery blocker merely because the PR changes other files
+  in that package or relies on its existing packaging. Keep unrelated legacy
+  and third-party packages outside the review's scope.
 - Keep `setup.py` to the standard helper invocation, apart from normal headers:
 
   ```python
@@ -35,6 +41,30 @@ assertions when the runtime path or team convention has not been verified.
   revision. Do not retain `find_packages("src")` or `package_dir` overrides
   to compensate for a missing symlink, and do not recommend deleting those
   overrides without supplying the discoverable layout.
+- **Blocking requirement: no import-path manipulation.** Application code,
+  scripts, tests, and `conftest.py` must import modules through the correctly
+  configured package and required `bg_build` setup. Disallow `sys.path`
+  insertion, appending, extension, or reassignment, and manually extending
+  `PYTHONPATH` to reach checkout, `src/`, or `scripts/` directories. Constructing
+  import paths from `__file__`, parent-directory traversal, the working
+  directory, or hard-coded filesystem locations is a packaging workaround,
+  not an acceptable test or runtime convenience. For example, flag this:
+
+  ```python
+  module_path = Path(__file__).resolve().parents[1] / "scripts" / "episode_to_mcap.py"
+  sys.path.insert(0, str(module_path.parent))
+  ```
+
+  Also reject loading the constructed path with
+  `importlib.util.spec_from_file_location`, `SourceFileLoader`, or
+  `runpy.run_path` as a substitute for a normal package import. A different
+  filesystem loader does not fix the packaging issue.
+- Request the actual packaging fix: put reusable implementation in importable
+  package modules, keep executable scripts as thin entry points, declare the
+  dependencies, and use ordinary imports from application code and tests.
+  Validate in the normally built/installed and sourced BG environment without
+  an extra import-path workaround. Ordinary paths for data/resources and the
+  standard generated environment setup are outside this import-specific rule.
 - Declare runtime, build, and test dependencies in `package.xml`, including
   `<buildtool_depend>bg_build</buildtool_depend>` for the helper import and
   the appropriate test dependencies. Use valid dependency keys; do not copy
@@ -102,25 +132,37 @@ assertions when the runtime path or team convention has not been verified.
 
 ## Tests and evidence
 
-- A new test should protect a user-visible or operational behavior: name
-  which regression it detects. Test the failure condition the change fixes
-  **and** a valid case that must keep working when feasible. Cover missing
-  parameters, rejected bad data, valid data, and important error logging where
-  those behaviors are in scope.
-- Mock external boundaries when necessary, but avoid tests that only assert
-  an import, a stub call, or a particular implementation shape. Remove
-  temporary exploratory tests/scripts before PR submission; keep genuine
-  regression tests even if fixing them takes work. Record which tests were
-  actually run and what still needs real-data or robot validation.
+- **Regression coverage:** When a PR fixes a described failure, require a test
+  that exercises the triggering condition and checks the corrected observable
+  behavior, unless that behavior cannot reasonably be tested in the available
+  environment. A test that only imports a module, checks a stub call, or mirrors
+  implementation shape does not satisfy this rule. Cite the described failure
+  and the missing or ineffective assertion. Ask for an explanation of the test
+  limit when direct coverage is impractical; do not require a test for every
+  changed line or implementation detail.
+- **Preserve a working case:** If a fix changes a path used by valid input and
+  the PR's tests exercise only the rejection/failure case, request a valid-case
+  check when there is a concrete way that the fix could break the working path.
+  Name that regression risk; do not fail the gate just because a test matrix is
+  incomplete. Missing parameters, rejected bad data, valid data, and important
+  error logging are useful cases when those behaviors are affected.
+- Mock external boundaries when necessary. Remove temporary exploratory
+  tests/scripts before PR submission; keep genuine regression tests even if
+  fixing them takes work. Record which tests were actually run and what still
+  needs real-data or robot validation.
 - Example: `bg_sumi#54` asked for bad-recording and good-recording checks;
   testing reported on `bg_rad_core#102` was explicit rather than inferred.
 
 ## API clarity and scope
 
-- Give public or non-obvious APIs docstrings that explain behavior, return
-  semantics, side effects, or failure modes; use the target repository's
-  docstring style and type annotations. Do not demand boilerplate for obvious
-  helpers or assume the RPS-specific docstrings skill governs every BG repo.
+- **API contract clarity:** Flag a new or changed public or non-obvious API
+  when its docstring is absent or materially inaccurate **and** a caller needs
+  missing behavior, return semantics, side effects, or failure modes to use it
+  correctly. Name the specific ambiguity and how it could lead to misuse;
+  request that contract in the target repository's docstring style. Do not
+  fail the gate for an obvious helper, a style preference, or information
+  already clear from the signature and type annotations. Do not assume the
+  RPS-specific docstrings skill governs every BG repo.
 - Prefer accurate types to broad `Any` plus defensive `hasattr` when the input
   contract is known. Question redundant validation or duplicate checks when
   they do not catch an additional failure mode (`bg_sumi#54`).
