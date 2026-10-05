@@ -1,19 +1,25 @@
 ---
 name: bg-elasticsearch
-description: Connect to a Berkshire Grey Elasticsearch deployment when the user specifies a customer and site name. Uses the mapping of customer, site, index name to index alias and id from https://github.com/berkshiregrey/bg_agents/blob/devel/n8n_workflows/Data%20Tables/Elastic%20Indices.csv.
+description: Query Berkshire Grey Elasticsearch logs by customer, site, or cell, including plain-language requests for the FA cell and BIL/Billerica bg_arc_N cells. Resolve saved RAD cell routes or use the organization index inventory for other sites and datasets.
 ---
 
 # Elasticsearch Site Lookup
 
-Use this skill when the user wants to query Elasticsearch by customer and site.
+Use this skill when the user wants to query Elasticsearch by customer, site, or
+cell, including "query the FA cell" and "query BIL bg_arc_2".
 
 Read `references/instructions.md` before running Elasticsearch queries. Follow that file when it conflicts with older examples in this skill.
 
 ## Workflow
 
 1. Treat the customer and site as separate concepts.
-2. Use `references/rad_bg_agents_es_cfg.json` as the default Elasticsearch target. It points at the RAD Billerica AutoStore logs alias.
-3. Use the customer, site, program name, and/or data type to find alternate Elasticsearch connection details from the CSV inventory only when the user explicitly asks for a different site/index.
+2. Resolve named RAD log requests using the profiles in
+   [references/rad_bg_agents_es_cfg.json](references/rad_bg_agents_es_cfg.json)
+   and the cell-selection rules in `references/instructions.md`. Explicit FA or
+   ARC cell selection takes precedence over the general Billerica default.
+3. For other sites or datasets, use the customer, site, program name, and/or data
+   type to find connection details from the CSV inventory. The saved cell
+   profiles cover logs only; do not derive metrics or Mongo aliases from them.
 4. If the exact index or alias is still unknown after checking the CSV, ask the user for the connection details. Try search index patterns derived from the normalized customer and site names using patterns from the CSV inventory.
 5. Prefer the `bga-readonly` skill's `elastic` command for queries through BG AI
    Gateway. Discover the matching Elastic connection and inspect its permissions.
@@ -65,7 +71,9 @@ If counts disagree with Kibana, verify the active time field before assuming the
 
 ## CSV Inventory Lookup
 
-When the user provides business identifiers but not the Elasticsearch URL, alias, or index ID, use the inventory CSV in GitHub as the primary source of truth before probing Vault or Elasticsearch.
+For requests outside the saved RAD log profiles, use the inventory CSV in GitHub
+as the primary source of truth before probing Vault or Elasticsearch. The saved
+FA profile records verified runtime routing that is absent from the inventory.
 
 Repository details:
 

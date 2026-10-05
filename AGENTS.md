@@ -109,6 +109,15 @@ The `bg-elasticsearch` skill selects the site/index and uses this wrapper as its
 preferred query transport. Its local Python/Vault setup is a fallback for sites
 without an available gateway connection; it is not required for gateway queries.
 
+Its named RAD log profiles live in
+`skills/bg-elasticsearch/references/rad_bg_agents_es_cfg.json`. Plain-language
+"FA cell" requests select the Bedford `rad_abb_fa` system in the existing
+`bg_p2_fa` log alias; "BIL bg_arc_N" requests select the numbered ARC system in
+the Billerica alias. Cell-selection rules are in the skill's
+`references/instructions.md`. Both profiles use `elastic:dev`; the current
+connection UUID is discovered at query time. Profile changes take effect through
+the existing `~/.codex/skills/bg-elasticsearch` symlink.
+
 ## Codex Session Release Installation
 
 The session-release skill lives in `skills/codex-session-release/`. Install it

@@ -6,21 +6,49 @@ applyTo: "**"
 
 ## Site and query scope
 
-Use `~/.codex/skills/bg-elasticsearch/references/rad_bg_agents_es_cfg.json` for
-the default RAD Billerica AutoStore logs alias. Billerica, BIL, RAD Billerica,
-and bill-autostore refer to this entry. For another site/index, follow the CSV
-inventory lookup in `SKILL.md`.
+Resolve RAD log requests from the profiles in
+[rad_bg_agents_es_cfg.json](rad_bg_agents_es_cfg.json):
+
+- "FA cell", "ABB FA cell", "Bedford FA cell", `rad_abb_fa`, and its SSH host
+  names select the `fa` profile and its fixed system filter.
+- BIL, Billerica, RAD Billerica, and bill-autostore select the `bil` profile.
+  `bg_arc_N` or "ARC cell N" selects that profile's `bg_arc` system family;
+  substitute the requested positive integer cell number into its template.
+  For example, "query BIL bg_arc_2" and "query Billerica ARC cell 2" select
+  `bg_arc_2`. This family also identifies BIL when the site is omitted.
+- For several ARC cells, use an exact `terms` filter with the requested system
+  names. For "all BIL ARC cells", use the family's `all_systems_regexp` as a
+  `regexp` filter. Do not restrict ARC requests to the legacy `bg_p2_N` default
+  values or silently substitute a P2 cell for an ARC cell with no results.
+- General BIL requests retain the existing Billerica profile and defaults.
+  A numbered BIL cell without a family uses established conversation context;
+  clarify the family when both P2 and ARC are plausible.
+- Preserve the selected cell for follow-up log questions until the user changes
+  it. An explicit alias or system filter overrides the saved route. For other
+  sites or datasets, follow the CSV inventory lookup in `SKILL.md`.
+
+Use each profile's `system_scope_field` for exact system filters. BIL's
+`system_name` is already a keyword field; FA uses `system_name.keyword`.
+Confirm field capabilities if a saved field stops working. An empty result
+does not authorize broadening to another cell or index.
+
+The FA profile targets the running Docker cell's verified `bg_p2_fa` log alias,
+not the separate prototype `rad-itf` alias. SSH host names are lookup synonyms;
+ordinary Elastic searches do not require SSH, a container, or the GAI workspace.
 
 Before the first query, tell the user the site/index, filters, and time range.
 An already-requested log investigation authorizes read queries within that scope;
 this scope update is not a separate conversational approval gate. Use the time
 field appropriate to the dataset as described in `SKILL.md`.
+For these profiles, interpret "today" in `America/New_York`, from local midnight
+to now, and report times in that timezone unless the user specifies another.
 
 ## Preferred transport: BG AI Gateway
 
 Read `~/.codex/skills/bga-readonly/SKILL.md`. Discover connections with `list`,
 select the matching `elastic:<cluster>` connection, and inspect its permissions.
-For the default Dev/Billerica index, select `elastic:dev`.
+Both saved RAD log profiles select `elastic:dev`. Discover its current connection
+UUID rather than storing a session-specific UUID in the configuration.
 
 Write the Elasticsearch JSON body to a local file and invoke the wrapper directly:
 

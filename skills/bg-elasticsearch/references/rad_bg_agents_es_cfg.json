@@ -1,5 +1,8 @@
 [
     {
+        "profile": "bil",
+        "request_aliases": ["BIL", "Billerica", "RAD Billerica", "bill-autostore"],
+        "connection_ref": "elastic:dev",
         "program": "RAD",
         "customer": "Dev",
         "site": "BIL",
@@ -12,6 +15,15 @@
         "system": "ALL",
         "system_scope_field": "system_name",
         "system_scope_value": "",
+        "time_field": "@timestamp",
+        "timezone": "America/New_York",
+        "system_families": [
+            {
+                "name": "bg_arc",
+                "system_scope_value_template": "bg_arc_{N}",
+                "all_systems_regexp": "bg_arc_[0-9]+"
+            }
+        ],
         "default_system_scope_values": [
             "bg_p2_1",
             "bg_p2_2",
@@ -20,5 +32,30 @@
             "bg_p2_5",
             "bg_p2_6"
         ]
+    },
+    {
+        "profile": "fa",
+        "request_aliases": [
+            "FA cell",
+            "ABB FA cell",
+            "Bedford FA cell",
+            "rad_abb_fa",
+            "rad-abb-fa",
+            "rad-abb-fa-container"
+        ],
+        "connection_ref": "elastic:dev",
+        "program": "RAD",
+        "customer": "Dev",
+        "site": "BED",
+        "site_name": "Bedford",
+        "index_name": "logs",
+        "elastic_url": "https://afbe1894abe74f6684dcd21e462b8a68.us-east-1.aws.found.io:443",
+        "kibana_url": "https://5aaf267ca78b4a4aae4ff470d3b49ff7.us-east-1.aws.found.io:9243/s/rad-p2/app/r/s/iTkqG",
+        "index_alias": "bg_p2_fa-log.records-alias",
+        "system": "rad_abb_fa",
+        "system_scope_field": "system_name.keyword",
+        "system_scope_value": "rad_abb_fa",
+        "time_field": "@timestamp",
+        "timezone": "America/New_York"
     }
 ]
