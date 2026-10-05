@@ -165,6 +165,15 @@ EOF_TIMER
 
 ## Weekly Summary Job
 
+The wrapper retries only failed runs reporting `Selected model is at capacity`,
+waiting 120 seconds between attempts, with five attempts total. Other failures
+exit immediately. Each attempt is streamed to the systemd journal and saved in
+`~/.local/state/codex-weekly-summary/attempt-*.log`. The same model and prompt
+are used on every attempt. A three-hour service timeout accommodates retries.
+After changing this example, update `~/.local/bin/run-last-week-summary` and
+its vault installation copy at `~/journal/.codex/systemd/run-last-week-summary`,
+then update the service and run `systemctl --user daemon-reload`.
+
 Create the wrapper script:
 
 ```bash
@@ -182,11 +191,38 @@ LAST_MESSAGE="$LOG_DIR/last-message-${RUN_DATE}.md"
 mkdir -p "$LOG_DIR"
 cd "$JOURNAL"
 
-codex exec \
+MAX_ATTEMPTS=5
+RETRY_DELAY_SECONDS=120
+
+for ((attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)); do
+  ATTEMPT_LOG="$LOG_DIR/attempt-${RUN_DATE}-$(date +%H%M%S)-${attempt}.log"
+  printf 'Weekly summary attempt %d/%d\n' "$attempt" "$MAX_ATTEMPTS"
+  if codex exec \
   --approve-for-me \
   -C "$JOURNAL" \
   -o "$LAST_MESSAGE" \
-  "Use the journal-last-week-summary skill. This is a scheduled, non-interactive run. Before reading note context, read AGENTS.md and UNKNOWN_ACRONYMS.md. Generate or fully regenerate the weekly summary for the previous fully completed Monday-Sunday week. Read the relevant daily notes, directly linked/transcluded notes, and write the result to the correct weekly/weekly-summary-YYYY-MM-DD.md file. If you discover unfamiliar acronyms, shorthand, people, product names, site labels, or domain terms whose meaning is not confirmed by acronyms/ or context, do not ask the user in this run. Instead, create or update top-level UNKNOWN_ACRONYMS.md with concise unresolved entries including the term, source/date context, and the question Dylan should answer. Only create or update acronyms/ entries when the meaning is confirmed by the existing glossary, notes, or this prompt. Keep edits scoped to the weekly summary file, acronyms/ entries with confirmed meanings, and UNKNOWN_ACRONYMS.md."
+  "Use the journal-last-week-summary skill. This is a scheduled, non-interactive run. Before reading note context, read AGENTS.md and UNKNOWN_ACRONYMS.md. Generate or fully regenerate the weekly summary for the previous fully completed Monday-Sunday week. Read the relevant daily notes, directly linked/transcluded notes, and write the result to the correct weekly/weekly-summary-YYYY-MM-DD.md file. If you discover unfamiliar acronyms, shorthand, people, product names, site labels, or domain terms whose meaning is not confirmed by acronyms/ or context, do not ask the user in this run. Instead, create or update top-level UNKNOWN_ACRONYMS.md with concise unresolved entries including the term, source/date context, and the question Dylan should answer. Only create or update acronyms/ entries when the meaning is confirmed by the existing glossary, notes, or this prompt. Keep edits scoped to the weekly summary file, acronyms/ entries with confirmed meanings, and UNKNOWN_ACRONYMS.md." 2>&1 | tee "$ATTEMPT_LOG"; then
+    exit 0
+  else
+    # Read immediately: the pipeline status must survive the logging commands.
+    attempt_status=("${PIPESTATUS[@]}")
+    status="${attempt_status[0]}"
+    if (( status == 0 )); then
+      exit "${attempt_status[1]}"
+    fi
+  fi
+
+  if ! rg -q '^ERROR: Selected model is at capacity\.' "$ATTEMPT_LOG"; then
+    printf 'Weekly summary failed with exit %d; not a model capacity error.\n' "$status" >&2
+    exit "$status"
+  fi
+  if (( attempt == MAX_ATTEMPTS )); then
+    printf 'Model capacity retry limit reached after %d attempts.\n' "$MAX_ATTEMPTS" >&2
+    exit "$status"
+  fi
+  printf 'Model at capacity; retrying in %d seconds.\n' "$RETRY_DELAY_SECONDS"
+  sleep "$RETRY_DELAY_SECONDS"
+done
 EOF_SCRIPT
 chmod +x ~/.local/bin/run-last-week-summary
 ```
@@ -202,6 +238,7 @@ Description=Run Codex weekly journal summary for last week
 Type=oneshot
 EnvironmentFile=%h/.config/environment.d/bg-ai-gateway.conf
 ExecStart=%h/.local/bin/run-last-week-summary
+TimeoutStartSec=3h
 EOF_SERVICE
 ```
 
