@@ -65,6 +65,18 @@ these criteria.
   Validate in the normally built/installed and sourced BG environment without
   an extra import-path workaround. Ordinary paths for data/resources and the
   standard generated environment setup are outside this import-specific rule.
+- **Top-level imports (no lazy imports):** Keep all Python imports as ordinary
+  module-level `import` or `from ... import ...` statements in the import block
+  at the top of the file, after any module docstring and `__future__` imports.
+  Check changed BG-owned application code, scripts, tests, and `conftest.py`
+  independently of whether `setup.py` changes. Flag imports inside functions,
+  methods, classes, conditional/control-flow blocks, or the `__main__` block,
+  and imports placed after module implementation code. Do not substitute
+  `__import__`, `importlib.import_module`, or lazy loaders for normal top-level
+  imports. Request moving the imports to the top of the file and fixing any
+  resulting dependency or circular-import problem. Optional dependencies,
+  startup cost, and a currently working deferred import do not waive this
+  convention; only an explicit exception from Dylan permits a deviation.
 - Declare runtime, build, and test dependencies in `package.xml`, including
   `<buildtool_depend>bg_build</buildtool_depend>` for the helper import and
   the appropriate test dependencies. Use valid dependency keys; do not copy

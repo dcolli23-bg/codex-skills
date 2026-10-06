@@ -182,6 +182,9 @@ invocation, source symlink convention, and dependency declarations in
 `package.xml`. Import-path manipulation in
 application code, scripts, or tests is also blocking; require normal package
 imports through `bg_build` instead of `sys.path` or filesystem-loader workarounds.
+The shared criteria also require all Python imports in the top-of-file,
+module-level import block. Function-local, conditional, late, and dynamic/lazy
+import substitutes are readiness violations even when `setup.py` is untouched.
 The readiness gate posts a minimal `COMMENT` review on a verified clean PR,
 tagging `@dcolli23-bg` for full review. It does not approve or request changes;
 it skips the pass message when a material criterion remains unverified or a
