@@ -175,7 +175,10 @@ PR head when the selected checkout differs or is dirty and the selected workflow
 can access the worktree; it leaves Dylan's checkout intact. Missing BG
 bootstrapping or the required Python/C++ logger on
 affected production paths is a blocking finding. These review rules take effect
-through the existing symlinks. Nonstandard `setup.py` customization or Python
+through the existing symlinks. The shared criteria also require changed Python
+scripts to bootstrap in the guarded entrypoint before calling application
+`main`, and to use deployment-configured logging handlers for operational logs.
+Nonstandard `setup.py` customization or Python
 package discovery layout is blocking only when the PR changes that BG-owned
 package's `setup.py` in any way; the criteria document the minimal BG helper
 invocation, source symlink convention, and dependency declarations in

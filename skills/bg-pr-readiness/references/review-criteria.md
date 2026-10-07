@@ -130,6 +130,23 @@ these criteria.
   `/system/log/handlers`; an explicit `logging_handlers=()` disables handlers
   in that bootstrap call. A wrapper may rely on logging initialized elsewhere,
   so trace the whole startup sequence before flagging it.
+- **Python entrypoint convention:** In changed BG executable scripts, invoke
+  `bootstrap_default` (or the appropriate bootstrap sequence) in the guarded
+  `if __name__ == "__main__":` entrypoint, before calling application `main`.
+  Pass parsed arguments or initialized dependencies into `main`; importing
+  reusable application modules must not bootstrap the process. Keep `main`
+  focused on application behavior rather than parsing and environment setup.
+  Use the appropriate BG main runner/error wrapper for the process, preserving
+  its cancellation and cleanup contract. Examples are
+  `bg_core/perception/dimension_estimator/scripts/run_dimension_estimator.py`
+  and `bg_rpc_common/rpc_stack_light/scripts/run_stack_light_controller.py`.
+- Let bootstrap select logging handlers from `/system/log/handlers`; do not
+  override them with a console-only list for affected production/operator
+  processes that must emit regular operational logs. Standard logger calls
+  must reach the configured sinks, including the deployment's Elastic pipeline.
+  Dylan's bootstrap placement and handler feedback in `bg_rad_core#109`
+  establishes these conventions; verify the actual entrypoint and deployment
+  configuration rather than assuming every legacy script follows them.
 - In Python, use the standard `logging` logger in production code; in C++,
   follow the repository's `bg_logging` setup and logging API. Check that
   warnings/errors needed for operations reach configured sinks, rather than
