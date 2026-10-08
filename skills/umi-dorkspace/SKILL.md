@@ -9,3 +9,6 @@ Read and follow the [shared Dorkspace container workflow](../dorkspace-container
 with this skill's [environment configuration](environment.yaml) before workspace
 inspection or container operations. Keep this environment active until the user
 selects another.
+
+Use wrapper environment `umi` for `ds exec` commands as described in the shared
+workflow.

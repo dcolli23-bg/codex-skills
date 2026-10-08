@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+"""Run commands through configured Dorkspaces with one stable approval prefix."""
+
+import argparse
+import os
+from pathlib import Path
+import re
+import shlex
+import subprocess
+import sys
+
+
+ROOT = Path(__file__).resolve().parent.parent
+ENVIRONMENTS = {
+    "gai": "gai-dorkspace",
+    "rad-p2": "rad-p2-dorkspace",
+    "umi": "umi-dorkspace",
+}
+
+
+def load_environment(name):
+    # These configs deliberately contain only unquoted, flat YAML scalars.
+    path = ROOT / "skills" / ENVIRONMENTS[name] / "environment.yaml"
+    config = {}
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        match = re.fullmatch(r"(starters_root|execution|default_system):\s+([/\w.-]+)", line)
+        if not match or match[1] in config:
+            raise ValueError(f"Unsupported or duplicate configuration in {path}: {line}")
+        config[match[1]] = match[2]
+    if not Path(config.get("starters_root", "")).is_absolute():
+        raise ValueError(f"Missing absolute starters_root in {path}")
+    if config.get("execution") not in {"workspace", "system"}:
+        raise ValueError(f"Invalid execution mode in {path}")
+    if config["execution"] == "system" and not config.get("default_system"):
+        raise ValueError(f"Missing default_system in {path}")
+    return config
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("environment", choices=ENVIRONMENTS)
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument("--system", help="Override the configured system (adds -bg-processes)")
+    selection.add_argument("--target", help="Explicit ds service target")
+    parser.add_argument("--no-init", action="store_true", help="Use bash -c; command/script must source any required setup")
+    action = parser.add_mutually_exclusive_group(required=True)
+    action.add_argument("--command", help="Shell command, evaluated inside initialized container bash")
+    action.add_argument("--script", help="Bash script path, relative to BG_ROOT or absolute in container")
+    action.add_argument("--interactive", action="store_true", help="Open the selected ds terminal")
+    action.add_argument("--status", action="store_true", help="List running containers using docker ps")
+    args = parser.parse_args()
+
+    guard = subprocess.run([str(ROOT / "scripts" / "require-container-host.sh")])
+    if guard.returncode:
+        return guard.returncode
+    config = load_environment(args.environment)
+    if args.system:
+        target = args.system + "-bg-processes"
+    else:
+        target = args.target or (
+            "workspace" if config["execution"] == "workspace"
+            else config["default_system"] + "-bg-processes"
+        )
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", target):
+        parser.error("Target/system must be a plain service name")
+    if args.status:
+        argv = ["docker", "ps", "--format", "table {{.Names}}\t{{.Status}}"]
+    elif args.interactive:
+        argv = ["ds", "exec", target]
+    else:
+        command = args.command if args.command is not None else "bash " + shlex.quote(args.script)
+        payload = 'cd "$BG_ROOT" && ' + command
+        # ds joins its remaining argv into a shell command. Quote the whole bash
+        # payload once here; host shells never expand container variables.
+        argv = ["ds", "exec", target, shlex.join(["bash", "-c" if args.no_init else "-lic", payload])]
+    os.chdir(config["starters_root"])
+    os.execvp(argv[0], argv)
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except (OSError, ValueError) as error:
+        print(f"dorkspace-exec: {error}", file=sys.stderr)
+        sys.exit(1)

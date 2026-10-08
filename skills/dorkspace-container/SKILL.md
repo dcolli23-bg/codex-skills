@@ -59,49 +59,68 @@ that a build or test works in the container.
   system when provided; otherwise use `default_system`. An explicit user target
   overrides the configured default. Ask only if the target remains ambiguous.
 
-Before execution, check that the selected container is running, for example with
-`docker ps --format 'table {{.Names}}\t{{.Status}}'`. Use the starters configuration
+Before execution, check that the selected container is running with the wrapper's
+`--status` action below. Use the starters configuration
 to resolve the full container name if needed; pass the service target above to
 `ds exec`, not the full Docker container name. State the selected environment and
 container in a progress update when execution is required. If it is unavailable,
 report that fact rather than switching to a different system or the workspace.
 
-## Execute through ds
+## Execute through the wrapper
 
-Set the host working directory to `starters_root`. Prefer explicit `ds exec`
-targets rather than SSH or workspace-targeting aliases.
+Invoke `/home/dcolli23/code/codex-skills/scripts/dorkspace-exec` directly for
+all `ds exec` operations. Use environment `gai`, `rad-p2`, or `umi` to match the
+selected entry-point skill. The wrapper reads that skill's `environment.yaml`,
+runs the host guard, sets the host working directory, and selects the configured
+target. Use `--system <name>` for a selected system or `--target <service>` for an
+explicit user target; otherwise omit both. It never starts or restarts containers.
 
-For an interactive terminal, run `ds exec <target>`, then `cd "$BG_ROOT"` inside
-the container.
-
-For a one-shot command requiring ROS setup or aliases such as `bgbuild`, use
-this host-shell pattern, substituting the selected target and command:
-
-```bash
-ds exec <target> "bash -lic 'cd \"\$BG_ROOT\" && <command>'"
-```
-
-`ds exec` joins command arguments into a shell command. Preserve the inner
-single quotes around the `bash -lic` payload; the escaped double quotes and
-dollar sign make `"$BG_ROOT"` expand inside the initialized container shell.
-Apply the same care to other container variables and shell substitutions.
-For example, a read-only command in a workspace target is:
+For example, in GAI:
 
 ```bash
-ds exec workspace "bash -lic 'cd \"\$BG_ROOT\" && pwd'"
+/home/dcolli23/code/codex-skills/scripts/dorkspace-exec gai --status
+/home/dcolli23/code/codex-skills/scripts/dorkspace-exec gai --command 'python3 -m pytest -q rad_rfm_application/test'
+/home/dcolli23/code/codex-skills/scripts/dorkspace-exec gai --command 'cd "$BG_ROOT/src/.codex-worktrees/pr-review" && python3 -m pytest -q'
+/home/dcolli23/code/codex-skills/scripts/dorkspace-exec gai --script src/.codex-reviews/validation.sh
+/home/dcolli23/code/codex-skills/scripts/dorkspace-exec gai --interactive
 ```
 
-Without a terminal, plain `ds exec` uses `bash -c` and does not ensure interactive
-shell initialization. If login/interactive initialization is unsuitable,
-explicitly source the selected container's ROS setup and
-`"$BG_ROOT/install/setup.bash"`, using executable commands rather than aliases.
+`--command` executes in `bash -lic` after `cd "$BG_ROOT"`, so ROS setup and
+aliases such as `bgbuild` are available. Pass the command as one literal,
+single-quoted host argument so `$BG_ROOT`, `$PYTHONPATH`, substitutions, and
+other shell syntax are evaluated inside the container. The wrapper handles the
+additional quoting required because `ds exec` joins its command arguments.
+For complex commands or embedded single quotes, write a script on the bind-mounted
+source tree and use `--script`; paths are relative to `$BG_ROOT`, or absolute
+inside the container. For `--interactive`, run `cd "$BG_ROOT"` after entering.
 
-In these environments, `ds bash` selects the generic workspace through
-`container_name: workspace` in `.dorkspacerc.yaml`. The `ds build`, `ds test`,
-and any `ds pytest` aliases also route through `ds bash`. They therefore do not
-select a system container. For workspace execution, `ds bash` is a valid
-interactive shortcut, but prefer explicit commands for builds and tests:
-some local aliases do not forward extra arguments.
+If interactive/login initialization is unsuitable, add `--no-init` and explicitly
+source the selected container's ROS setup and `"$BG_ROOT/install/setup.bash"`
+in the command or script. This selects `bash -c`; aliases are unavailable.
+
+### Persistent approvals
+
+Use the absolute executable path directly in the tool's `cmd`, with no outer
+`bash -lc`, host variable assignments, redirections, substitutions, or compound
+host commands. Keep output in tool results or write it using a separate file
+operation. When escalation is needed, request this reusable `prefix_rule`, using
+the selected environment as its second argument:
+
+```python
+["/home/dcolli23/code/codex-skills/scripts/dorkspace-exec", "gai"]
+```
+
+One persisted approval then covers changing command/script arguments, status,
+and target selection in that environment. This authorizes arbitrary commands
+in the selected environment, including writes through its host bind mounts;
+it is not a read-only wrapper. Do not edit approval rules automatically or
+substitute a broad Bash/Docker allow rule. Existing task authorization and the
+lifecycle boundaries below still apply.
+
+`ds bash`, `ds build`, `ds test`, and `ds pytest` aliases select the generic
+workspace through `.dorkspacerc.yaml`, so they do not select a system container.
+Use the wrapper with an explicit command for builds and tests; some local aliases
+do not forward extra arguments.
 
 ## Lifecycle boundaries
 

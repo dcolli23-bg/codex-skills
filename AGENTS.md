@@ -360,6 +360,16 @@ Keep environment settings in those configs, shared behavior in the shared skill,
 and only environment-specific guidance in the entry points. `home-AGENTS.md`
 routes requests to the entry points without duplicating their workflows.
 
+The shared executable is `scripts/dorkspace-exec`; invoke it by its absolute
+path with environment `gai`, `rad-p2`, or `umi`. It reads the existing configs,
+runs the host guard, and wraps `ds exec` shell initialization and quoting.
+`--status` wraps `docker ps`. Keep it executable; no additional installation or
+symlink is needed. Request a persisted approval prefix consisting of the absolute
+wrapper path and the selected environment; do not save entire nested Bash
+commands. Existing skills pick up this behavior through their symlinks.
+Validate with `python3 -m unittest discover -s scripts/tests -v`; these tests use
+fake executables and never operate on real containers.
+
 Install the shared skill alongside all three entry points; their relative links
 require it. The container workspace comes directly from `BG_ROOT`; system targets
 use the fixed `bg-processes` service, with no config field for either value.
