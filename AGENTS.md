@@ -317,6 +317,13 @@ The installed `~/AGENTS.md` begins with a source and editing workflow note that
 points back to this repository and its validation, commit, and push requirements.
 Preserve that note and the symlink when updating the home instructions.
 
+The home instructions require a pre-implementation decision checkpoint for
+features and changes with material design choices, regardless of Plan mode.
+Agents offer Grill and wait for Dylan to choose it or waive it unless that
+scope has already passed the checkpoint. Questions can be presented in chat;
+routine fixes and mechanical edits are exempt. This takes effect through the
+existing `~/AGENTS.md` symlink.
+
 The home instructions route BG GitHub, Jira, and Confluence reads through
 `bga-readonly`; install its symlink as described above alongside the
 organization-managed `bga-connections` skill so both the wrapper and its upstream

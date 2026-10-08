@@ -4,6 +4,26 @@
 
 `~/AGENTS.md` is installed as a symlink to `~/code/codex-skills/home-AGENTS.md`. Before editing these instructions, read `~/code/codex-skills/AGENTS.md` and follow its repository workflow, including validation, committing, and pushing requested changes unless Dylan explicitly says otherwise. Edit the tracked source and preserve the symlink.
 
+## Pre-implementation Decision Checkpoint
+
+For new features and changes involving material scope, behavior, interface,
+or architecture choices, complete investigation and draft a plan before
+editing implementation code. This applies whether or not Plan mode is used.
+
+Before implementation, check the current conversation:
+
+- If Grill has already been completed for this scope, proceed.
+- If Dylan explicitly waived Grill for this scope, proceed.
+- Otherwise, summarize the proposed plan and recommend a Grill pass.
+  Ask whether to run Grill or proceed without it, then wait for his answer.
+
+Present Grill questions directly in chat when a decision form is unavailable.
+Do not repeat this checkpoint for the same approved scope. Revisit it if
+material new decisions arise.
+
+Routine fixes with an established intended behavior, formatting changes,
+and mechanical edits do not require this checkpoint.
+
 ## Obsidian Journal Vault
 
 Dylan's Obsidian vault is at `/home/dcolli23/journal` (`~/journal`). When a prompt is ambiguous or needs additional personal or work context, consult the vault for relevant dev logs, meeting notes, TODOs, acronym definitions, and informal thoughts before guessing or asking for clarification.
