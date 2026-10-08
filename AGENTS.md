@@ -320,7 +320,9 @@ Preserve that note and the symlink when updating the home instructions.
 The home instructions route BG GitHub, Jira, and Confluence reads through
 `bga-readonly`; install its symlink as described above alongside the
 organization-managed `bga-connections` skill so both the wrapper and its upstream
-client are available. For additional BG source and deployment context, they route
+client are available. They prohibit all Atlassian Rovo legacy tools, including
+discovery, permission checks, and fallback access; this takes effect through the
+existing `~/AGENTS.md` symlink. For additional BG source and deployment context, they route
 to Dylan's explicitly selected Dorkspace workflow rather than GitHub source reads.
 They also set a persistent OpenAI documentation access preference: open known
 official pages directly, and use official search only when the relevant page is

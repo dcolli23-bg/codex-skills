@@ -29,6 +29,8 @@ If the in-app browser is unavailable, use direct retrieval from an official Open
 
 ## Berkshire Grey GitHub, Jira, and Confluence Access
 
+Never use the Atlassian Rovo legacy connection or its tools, including tool names containing `atlassian_rovo__legacy` or `atlassian_rovo_legacy`. This prohibition applies to reads, writes, discovery, permission checks, and fallback access. If BG AI Gateway lacks a required capability, report that limitation or use its endpoint-request workflow; do not fall back to Rovo legacy.
+
 For GitHub access involving Berkshire Grey repositories or Dylan's `dcolli23-bg` account, and for Berkshire Grey Jira and Confluence access, prefer BG AI Gateway over the general GitHub or Atlassian connectors. Use the personal `bga-readonly` skill for connection discovery, permission inspection, and approved provider GET requests, including GitHub PR descriptions, reviews, comments, and files; Jira issues and comments; and Confluence pages and comments. Read its instructions and the organization-managed `bga-connections` skill's access guidance; the wrapper delegates to that client without modifying it.
 
 Invoke `/home/dcolli23/.codex/skills/bga-readonly/scripts/bga-readonly` directly. When network escalation is needed, suggest that executable alone as the reusable approval prefix, without a connection UUID or endpoint. Use `--output` to save complete responses instead of shell redirection, which can prevent prefix matching.
