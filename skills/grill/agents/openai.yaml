@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grill"
+  short_description: "Surface decisions before implementation"
+  default_prompt: "Use $grill to identify the decisions I need to make before implementation."

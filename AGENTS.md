@@ -118,6 +118,23 @@ the Billerica alias. Cell-selection rules are in the skill's
 connection UUID is discovered at query time. Profile changes take effect through
 the existing `~/.codex/skills/bg-elasticsearch` symlink.
 
+## Grill Skill Installation
+
+The Grill skill is vendored from `bg_agents/codex_skills_library/grill/` into
+`skills/grill/`. Its origin and source revision are recorded in
+`skills/grill/UPSTREAM.md`; updates require an explicit upstream refresh.
+Install it using the personal-skill symlink pattern:
+
+```bash
+ln -sfn ~/code/codex-skills/skills/grill ~/.codex/skills/grill
+readlink -f ~/.codex/skills/grill
+```
+
+Use `$grill` for a decision pass before implementation. The home instructions
+link to the installed skill for their pre-implementation checkpoint. Questions
+can be answered directly in chat; the optional browser UI is included unchanged
+from upstream.
+
 ## Codex Session Release Installation
 
 The session-release skill lives in `skills/codex-session-release/`. Install it

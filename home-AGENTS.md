@@ -10,6 +10,10 @@ For new features and changes involving material scope, behavior, interface,
 or architecture choices, complete investigation and draft a plan before
 editing implementation code. This applies whether or not Plan mode is used.
 
+Use the installed [Grill skill](/home/dcolli23/.codex/skills/grill/SKILL.md)
+for the decision pass. Its tracked source is `~/code/codex-skills/skills/grill/`,
+vendored from `bg_agents` with provenance recorded in `UPSTREAM.md`.
+
 Before implementation, check the current conversation:
 
 - If Grill has already been completed for this scope, proceed.
