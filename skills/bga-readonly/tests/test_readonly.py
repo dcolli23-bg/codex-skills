@@ -1,6 +1,7 @@
 """Check the wrapper's approval boundary without credentials or network calls."""
 
 import contextlib
+import copy
 import io
 import json
 from pathlib import Path
@@ -26,6 +27,50 @@ ELASTIC_PERMISSIONS = {
 
 
 class ReadonlyTests(unittest.TestCase):
+    def test_current_permissions_schema_and_disabled_ancestors(self):
+        current = {
+            "platform": "elastic", "callable": True,
+            "products": [{"enabled": True, "categories": [{
+                "enabled": True, "endpoints": [
+                    {"enabled": True, "method": "POST", "path": "/{index}/" + endpoint}
+                    for endpoint in ("_search", "_count", "_field_caps")
+                ],
+            }]}],
+        }
+        for operation in ("search", "count", "field-caps"):
+            with self.subTest(operation=operation):
+                self.run.side_effect = lambda command, **kwargs: (
+                    subprocess.CompletedProcess([], 0, stdout=json.dumps(current).encode())
+                    if command[1] == "permissions" else self.success(command, **kwargs)
+                )
+                self.assertEqual(MAIN(ELASTIC + ["--operation", operation, "--body-text", "{}"]), 0)
+
+        denied = [{"platform": "elastic", "callable": True}]
+        for level in ("product", "category", "endpoint"):
+            for flag in ("enabled", "platformEnabled"):
+                changed = copy.deepcopy(current)
+                product = changed["products"][0]
+                category = product["categories"][0]
+                target = {"product": product, "category": category,
+                          "endpoint": category["endpoints"][0]}[level]
+                target[flag] = False
+                denied.append(changed)
+        for override in ({"method": "GET"}, {"path": "/{index}/_bulk"},
+                         {"enabled": "true"}, {"enabled": None}):
+            changed = copy.deepcopy(current)
+            changed["products"][0]["categories"][0]["endpoints"][0].update(override)
+            denied.append(changed)
+        denied.append({**ELASTIC_PERMISSIONS, "products": []})
+        self.run.side_effect = None
+        for permissions in denied:
+            with self.subTest(permissions=permissions):
+                self.run.reset_mock()
+                self.run.return_value = subprocess.CompletedProcess(
+                    [], 0, stdout=json.dumps(permissions).encode())
+                with contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(MAIN(ELASTIC + ["--body-text", "{}"]), 1)
+                self.run.assert_called_once()
+
     def setUp(self):
         self.run_patch = patch("subprocess.run")
         self.run = self.run_patch.start()

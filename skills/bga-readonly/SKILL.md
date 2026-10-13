@@ -55,6 +55,9 @@ For example, `field-caps` can use `{"fields":["@timestamp","system_name","messag
 
 Each Elastic call verifies that the connection is a callable Elastic provider and
 that the selected POST endpoint is enabled. It fails closed if this check fails.
+The check supports the current `products/categories/endpoints` permission tree
+and the legacy `permissions/children` tree, requiring enabled ancestors. When
+`products` is present, it is authoritative over legacy grants.
 The wrapper does not expose general POST, bulk, update/delete-by-query, or
 multi-search commands. Unsupported operations use the organization client's
 normal authorization workflow; do not bypass the wrapper with a generic POST

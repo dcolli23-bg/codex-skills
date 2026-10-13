@@ -71,17 +71,27 @@ def require_elastic_permission(connection, endpoint):
     if permissions.get("platform") != "elastic" or permissions.get("callable") is not True:
         raise ValueError("connection must be a callable Elastic provider")
 
-    def enabled_endpoint(entries):
+    def enabled_endpoint(entries, levels):
         for entry in entries:
-            if not entry.get("enabled", False) or entry.get("platformEnabled") is False:
+            if entry.get("enabled") is not True or entry.get("platformEnabled") is False:
+                continue
+            if levels:
+                if enabled_endpoint(entry.get(levels[0], []), levels[1:]):
+                    return True
                 continue
             if entry.get("method") == "POST" and entry.get("path") == "/{index}/" + endpoint:
                 return True
-            if enabled_endpoint(entry.get("children", [])):
+            if enabled_endpoint(entry.get("children", []), ()):
                 return True
         return False
 
-    if not enabled_endpoint(permissions.get("permissions", [])):
+    # Prefer the current schema when present; never use stale legacy grants to
+    # override a denial in the current product/category hierarchy.
+    if "products" in permissions:
+        allowed = enabled_endpoint(permissions["products"], ("categories", "endpoints"))
+    else:
+        allowed = enabled_endpoint(permissions.get("permissions", []), ())
+    if not allowed:
         raise ValueError(f"Elastic POST /{{index}}/{endpoint} is not enabled")
 
 

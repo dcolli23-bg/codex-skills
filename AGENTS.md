@@ -104,6 +104,10 @@ and supports complete response downloads with `--output`. Invoke
 executable-prefix approval can cover changing UUIDs and endpoint paths. It
 delegates to the organization client without modifying it. Writes continue
 through the organization skill's normal authorization workflow.
+The permission check supports current product/category/endpoint responses and
+legacy permission/children responses. Validate wrapper changes with
+`python3 -m unittest discover -s skills/bga-readonly/tests -v`; the existing
+installation symlink exposes parser updates immediately.
 
 The `bg-elasticsearch` skill selects the site/index and uses this wrapper as its
 preferred query transport. Its local Python/Vault setup is a fallback for sites
