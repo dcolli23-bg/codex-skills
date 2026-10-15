@@ -17,6 +17,16 @@ CLIENT = Path.home() / ".codex/skills/bga-connections/bga-connections"
 ELASTIC_OPERATIONS = {"search": "_search", "count": "_count", "field-caps": "_field_caps"}
 
 
+def client_command():
+    """Support both installer client filenames without requiring executable Python files."""
+    if CLIENT.is_file():
+        return [str(CLIENT)]
+    python_client = CLIENT.with_suffix(".py")
+    if python_client.is_file():
+        return [sys.executable, str(python_client)]
+    raise ValueError(f"organization client not found: {CLIENT} or {python_client}")
+
+
 def connection_id(value):
     try:
         return str(uuid.UUID(value))
@@ -60,10 +70,10 @@ def elastic_body(args):
     return json.dumps(body, ensure_ascii=True)
 
 
-def require_elastic_permission(connection, endpoint):
+def require_elastic_permission(connection, endpoint, client):
     """Verify provider and read endpoint using the gateway's current permissions."""
     result = subprocess.run(
-        [str(CLIENT), "permissions", connection], stdout=subprocess.PIPE, check=False,
+        client + ["permissions", connection], stdout=subprocess.PIPE, check=False,
     )
     if result.returncode:
         raise ValueError("could not inspect Elastic connection permissions")
@@ -117,11 +127,13 @@ def main(argv=None):
 
     if args.output is not None and os.path.lexists(args.output):
         parser.error("output already exists; choose a new file")
-    if not CLIENT.is_file():
-        parser.error(f"organization client not found: {CLIENT}")
+    try:
+        client = client_command()
+    except ValueError as exc:
+        parser.error(str(exc))
 
     # Never forward arbitrary options, accept a caller-selected executable, or use a shell.
-    command = [str(CLIENT)]
+    command = client.copy()
     if args.command == "elastic":
         try:
             body = elastic_body(args)
@@ -143,13 +155,13 @@ def main(argv=None):
 
     try:
         if args.command == "elastic":
-            require_elastic_permission(args.connection, endpoint)
+            require_elastic_permission(args.connection, endpoint, client)
         with ExitStack() as stack:
             download = None
             if args.command in ("get", "elastic") and args.output is not None:
                 directory = stack.enter_context(tempfile.TemporaryDirectory(prefix="bga-readonly-"))
                 download = Path(directory) / "response"
-                command[1] = "download"
+                command[len(client)] = "download"
                 command += ["--output", str(download)]
             result = subprocess.run(
                 command, stdout=subprocess.PIPE if args.output is not None else None,

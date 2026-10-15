@@ -8,6 +8,8 @@ description: Read BGA-connected GitHub, Jira, Confluence, and Elasticsearch data
 Use this personal wrapper for read requests through BG AI Gateway. Read the
 organization's `~/.codex/skills/bga-connections/SKILL.md` for its access workflow;
 this wrapper delegates to that client without changing it or managing credentials.
+It supports both the legacy `bga-connections` executable and the current
+`bga-connections.py` client, invoking the latter with Python.
 
 Invoke the executable directly, expanding `~` to this machine's home directory
 when supplying an absolute tool path or approval prefix:

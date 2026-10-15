@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import runpy
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -27,6 +28,33 @@ ELASTIC_PERMISSIONS = {
 
 
 class ReadonlyTests(unittest.TestCase):
+    def test_python_client_checks_permissions_and_downloads(self):
+        def is_file(path):
+            return path.suffix == ".py"
+
+        def python_success(command, **kwargs):
+            self.assertEqual(command[:2], [
+                sys.executable, str(MAIN.__globals__["CLIENT"].with_suffix(".py")),
+            ])
+            return self.success(command[1:], **kwargs)
+
+        self.run.side_effect = python_success
+        with patch.object(Path, "is_file", is_file), tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "response.json"
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(MAIN(ELASTIC + [
+                    "--body-text", "{}", "--output", str(output),
+                ]), 0)
+            self.assertEqual(output.read_bytes(), b'{"number":96}\n')
+            self.assertEqual(
+                [call.args[0][2] for call in self.run.call_args_list],
+                ["permissions", "download"],
+            )
+
+    def test_missing_both_client_filenames_fails_before_execution(self):
+        with patch.object(Path, "is_file", return_value=False):
+            self.reject(["list"])
+
     def test_current_permissions_schema_and_disabled_ancestors(self):
         current = {
             "platform": "elastic", "callable": True,
