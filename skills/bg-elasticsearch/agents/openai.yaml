@@ -1,4 +1,4 @@
 interface:
   display_name: "bg-elasticsearch"
-  short_description: "Resolve customer and site names into the right Elasticsearch cluster and alias"
-  default_prompt: "Given a customer and site name, resolve the Vault cluster name, connect to the Elasticsearch .es. endpoint, and locate the matching log-records alias or index."
+  short_description: "Query Elasticsearch logs by site, FA, ARC, or UMI/SUMI cell"
+  default_prompt: "Use $bg-elasticsearch to resolve the requested site or cell from the saved profiles and query its logs through the authorized BG AI Gateway connection, preserving the cell filter and time range."

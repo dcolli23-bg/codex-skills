@@ -1,12 +1,13 @@
 ---
 name: bg-elasticsearch
-description: Query Berkshire Grey Elasticsearch logs by customer, site, or cell, including plain-language requests for the FA cell and BIL/Billerica bg_arc_N cells. Resolve saved RAD cell routes or use the organization index inventory for other sites and datasets.
+description: Query Berkshire Grey Elasticsearch logs by customer, site, or cell, including plain-language requests for the FA cell and BIL/Billerica ARC or UMI/SUMI cells. Resolve saved RAD cell routes or use the organization index inventory for other sites and datasets.
 ---
 
 # Elasticsearch Site Lookup
 
 Use this skill when the user wants to query Elasticsearch by customer, site, or
-cell, including "query the FA cell" and "query BIL bg_arc_2".
+cell, including "query the FA cell", "query BIL bg_arc_2", and "check UMI
+cell 13 for camera errors today".
 
 Read `references/instructions.md` before running Elasticsearch queries. Follow that file when it conflicts with older examples in this skill.
 
@@ -15,8 +16,8 @@ Read `references/instructions.md` before running Elasticsearch queries. Follow t
 1. Treat the customer and site as separate concepts.
 2. Resolve named RAD log requests using the profiles in
    [references/rad_bg_agents_es_cfg.json](references/rad_bg_agents_es_cfg.json)
-   and the cell-selection rules in `references/instructions.md`. Explicit FA or
-   ARC cell selection takes precedence over the general Billerica default.
+   and the cell-selection rules in `references/instructions.md`. Explicit FA,
+   ARC, or UMI/SUMI cell selection takes precedence over the general Billerica default.
 3. For other sites or datasets, use the customer, site, program name, and/or data
    type to find connection details from the CSV inventory. The saved cell
    profiles cover logs only; do not derive metrics or Mongo aliases from them.

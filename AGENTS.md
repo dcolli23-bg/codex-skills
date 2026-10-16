@@ -117,7 +117,11 @@ Its named RAD log profiles live in
 `skills/bg-elasticsearch/references/rad_bg_agents_es_cfg.json`. Plain-language
 "FA cell" requests select the Bedford `rad_abb_fa` system in the existing
 `bg_p2_fa` log alias; "BIL bg_arc_N" requests select the numbered ARC system in
-the Billerica alias. Cell-selection rules are in the skill's
+the Billerica alias. "UMI cell N", "SUMI cell N", and `bg_sumi_N` select
+the `bg_sumi` family in that same Billerica alias, using the exact
+`system_name` field without `.keyword`. The ARC and UMI families support
+numbered, multi-cell, and all-family scopes without changing the general
+Billerica P2 defaults. Cell-selection rules are in the skill's
 `references/instructions.md`. Both profiles use `elastic:dev`; the current
 connection UUID is discovered at query time. Profile changes take effect through
 the existing `~/.codex/skills/bg-elasticsearch` symlink.

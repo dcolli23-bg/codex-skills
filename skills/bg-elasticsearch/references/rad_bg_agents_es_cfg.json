@@ -22,6 +22,11 @@
                 "name": "bg_arc",
                 "system_scope_value_template": "bg_arc_{N}",
                 "all_systems_regexp": "bg_arc_[0-9]+"
+            },
+            {
+                "name": "bg_sumi",
+                "system_scope_value_template": "bg_sumi_{N}",
+                "all_systems_regexp": "bg_sumi_[0-9]+"
             }
         ],
         "default_system_scope_values": [

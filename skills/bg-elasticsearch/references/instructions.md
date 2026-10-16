@@ -16,13 +16,20 @@ Resolve RAD log requests from the profiles in
   substitute the requested positive integer cell number into its template.
   For example, "query BIL bg_arc_2" and "query Billerica ARC cell 2" select
   `bg_arc_2`. This family also identifies BIL when the site is omitted.
-- For several ARC cells, use an exact `terms` filter with the requested system
-  names. For "all BIL ARC cells", use the family's `all_systems_regexp` as a
-  `regexp` filter. Do not restrict ARC requests to the legacy `bg_p2_N` default
-  values or silently substitute a P2 cell for an ARC cell with no results.
+- `bg_sumi_N`, "UMI cell N", and "SUMI cell N" select BIL's `bg_sumi`
+  system family; substitute the requested positive integer cell number into
+  its template. For example, "check UMI cell 13 for camera errors today"
+  selects `bg_sumi_13` in `rad-bill1-log.records-alias` with an exact
+  `system_name` filter (no `.keyword`). This family also identifies BIL when
+  the site is omitted.
+- For several ARC or UMI/SUMI cells, use an exact `terms` filter with the
+  requested system names. For "all BIL ARC cells" or "all UMI cells", use the
+  selected family's `all_systems_regexp` as a `regexp` filter. Do not restrict
+  ARC or UMI requests to the legacy `bg_p2_N` default values or silently
+  substitute another family for a cell with no results.
 - General BIL requests retain the existing Billerica profile and defaults.
   A numbered BIL cell without a family uses established conversation context;
-  clarify the family when both P2 and ARC are plausible.
+  clarify the family when P2, ARC, or UMI/SUMI are plausible.
 - Preserve the selected cell for follow-up log questions until the user changes
   it. An explicit alias or system filter overrides the saved route. For other
   sites or datasets, follow the CSV inventory lookup in `SKILL.md`.
