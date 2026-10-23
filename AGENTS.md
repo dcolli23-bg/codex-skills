@@ -126,6 +126,31 @@ Billerica P2 defaults. Cell-selection rules are in the skill's
 connection UUID is discovered at query time. Profile changes take effect through
 the existing `~/.codex/skills/bg-elasticsearch` symlink.
 
+## Kubernetes Read-only Wrapper Installation
+
+The Billerica-only kubectl wrapper lives in `skills/kubectl-readonly/`. Install
+it using the personal-skill symlink pattern:
+
+```bash
+ln -sfn ~/code/codex-skills/skills/kubectl-readonly ~/.codex/skills/kubectl-readonly
+readlink -f ~/.codex/skills/kubectl-readonly
+```
+
+Use `$kubectl-readonly` for RAD Billerica resource, log, metric, and rollout
+inspection. Invoke the installed executable directly and suggest that executable
+alone as the reusable approval prefix. It pins the Billerica context and API
+server, validates an explicit read command/flag allowlist, and uses a private
+certificate-only kubeconfig snapshot. Existing Kubernetes RBAC still applies,
+including to Secret reads. Mutations, execution, tunneling, other clusters, raw
+API paths, and unsupported flags are never covered. This wrapper does not
+provision cluster-side RBAC or change Codex approval rules.
+
+Validate changes locally without contacting Kubernetes:
+
+```bash
+python3 -m unittest discover -s skills/kubectl-readonly/tests -v
+```
+
 ## Grill Skill Installation
 
 The Grill skill is vendored from `bg_agents/codex_skills_library/grill/` into

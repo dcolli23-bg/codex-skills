@@ -1,0 +1,381 @@
+#!/usr/bin/python3
+"""Fail-closed, read-only kubectl operations for RAD Billerica."""
+
+import argparse
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+
+
+KUBECTL = "/usr/local/bin/kubectl"
+HOME = "/home/dcolli23"
+KUBECONFIG = HOME + "/.kube/config-auto"
+CONTEXT = "k8s/bg-rad-bill1-context"
+CLUSTER = "k8s/bg-rad-bill1-cluster"
+USER = "k8s/bg-rad-bill1-user"
+SERVER = "https://k8s.rad-bill1.bg.bgrey.io:6443"
+TLS_NAME = "k8s.rad-bill1.bg.bgrey.io"
+# No inherited KUBECONFIG, proxy, plugin, profiling, or credential-helper settings.
+ENV = {
+    "HOME": HOME,
+    "PATH": "/usr/bin:/bin",
+    "LANG": "C.UTF-8",
+    "KUBECTL_KUBERC": "false",
+}
+COMMANDS = (
+    "get", "describe", "logs", "events", "top pod", "top node",
+    "api-resources", "api-versions", "explain", "version", "cluster-info",
+    "cluster-info dump", "wait", "rollout history", "rollout status",
+)
+
+
+def boolean(value):
+    if value not in ("true", "false"):
+        raise argparse.ArgumentTypeError("boolean must be true or false")
+    return value
+
+
+def integer(value):
+    if not re.fullmatch(r"[0-9]+", value):
+        raise argparse.ArgumentTypeError("expected a nonnegative integer")
+    return value
+
+
+def tail(value):
+    return value if value == "-1" else integer(value)
+
+
+def duration(value):
+    if not re.fullmatch(r"(?:[0-9]+(?:\.[0-9]+)?(?:ns|us|ms|s|m|h))+", value):
+        raise argparse.ArgumentTypeError("expected a duration such as 30s or 2m")
+    return value
+
+
+def namespace(value):
+    if len(value) > 63 or not re.fullmatch(r"[a-z0-9](?:[-a-z0-9]*[a-z0-9])?", value):
+        raise argparse.ArgumentTypeError("invalid namespace")
+    return value
+
+
+def namespaces(value):
+    for item in value.split(","):
+        namespace(item)
+    return value
+
+
+def resource(value):
+    """Only resource/name syntax, never URLs, traversal, or subresource paths."""
+    for item in value.split(","):
+        parts = item.split("/")
+        if len(parts) > 2 or any(
+            not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]*", part)
+            or ".." in part for part in parts
+        ):
+            raise argparse.ArgumentTypeError("expected TYPE, NAME, or TYPE/NAME; no API paths")
+    return value
+
+
+def api_version(value):
+    if not re.fullmatch(r"(?:[a-z0-9]+(?:[.-][a-z0-9]+)*/)?v[0-9]+(?:(?:alpha|beta)[0-9]+)?", value):
+        raise argparse.ArgumentTypeError("expected an API version such as apps/v1")
+    return value
+
+
+def output_format(value):
+    if value in ("json", "yaml", "wide", "name"):
+        return value
+    if any(value.startswith(prefix) and len(value) > len(prefix) for prefix in (
+        "jsonpath=", "jsonpath-as-json=", "custom-columns=", "go-template=",
+    )):
+        return value
+    raise argparse.ArgumentTypeError("use a standard format or an inline template; no template files")
+
+
+def object_format(value):
+    if value == "wide" or value.startswith("custom-columns="):
+        raise argparse.ArgumentTypeError("this command supports object formats, not table formats")
+    return output_format(value)
+
+
+def parser_for(command):
+    """Construct a leaf parser and its explicit flag-to-argument mapping."""
+    parser = argparse.ArgumentParser(
+        prog="kubectl-readonly " + command, allow_abbrev=False,
+        description=f"Read-only {command} on {CONTEXT}. Unknown flags are rejected.",
+    )
+    flags = []
+    boolean_aliases = {}
+
+    def option(name, *aliases, kind=str, choices=None):
+        canonical = "--" + name
+        parser.add_argument(
+            canonical, *aliases, type=kind, choices=choices,
+            action="append" if name in ("namespaces", "label-columns", "verbs") else "store",
+        )
+        flags.append((name.replace("-", "_"), canonical))
+        if kind is boolean:
+            for alias in (canonical, *aliases):
+                boolean_aliases[alias] = canonical
+
+    def options(names, kind=str):
+        for name in names.split():
+            option(name, kind=kind)
+
+    def selectors(field_selector=True):
+        option("selector", "-l")
+        if field_selector:
+            option("field-selector")
+        option("all-namespaces", "-A", kind=boolean)
+
+    def formatting(table=False):
+        option("output", "-o", kind=output_format if table else object_format)
+        options("allow-missing-template-keys show-managed-fields", boolean)
+
+    option("namespace", "-n", kind=namespace)
+    option("context", choices=[CONTEXT])
+    option("request-timeout", kind=duration)
+    # A wrapper-owned exclusive-create output file, not kubectl's -o format flag.
+    parser.add_argument("--save-output", type=Path, help="save successful stdout to a new private file")
+    positional = "*"
+    if command in ("get", "events"):
+        selectors()
+        formatting(table=True)
+        options("ignore-not-found no-headers output-watch-events server-print show-kind show-labels watch-only", boolean)
+        option("watch", "-w", kind=boolean)
+        option("chunk-size", kind=integer)
+        option("label-columns", "-L")
+        option("sort-by")
+        positional = "+" if command == "get" else None
+    elif command == "describe":
+        selectors(field_selector=False)
+        options("show-events", boolean)
+        option("chunk-size", kind=integer)
+        positional = "+"
+    elif command == "logs":
+        option("selector", "-l")
+        option("container", "-c", kind=resource)
+        option("follow", "-f", kind=boolean)
+        option("previous", "-p", kind=boolean)
+        options("all-containers ignore-errors prefix timestamps", boolean)
+        options("limit-bytes max-log-requests", integer)
+        options("pod-running-timeout since", duration)
+        option("since-time")
+        option("tail", kind=tail)
+        positional = "?"
+    elif command.startswith("top "):
+        option("selector", "-l")
+        options("no-headers use-protocol-buffers", boolean)
+        option("sort-by", choices=["cpu", "memory"])
+        if command == "top pod":
+            option("all-namespaces", "-A", kind=boolean)
+            option("containers", kind=boolean)
+            option("field-selector")
+        positional = "?"
+    elif command == "api-resources":
+        options("cached namespaced no-headers", boolean)
+        options("api-group verbs")
+        option("sort-by", choices=["name", "kind"])
+        option("output", "-o", choices=["wide", "name"])
+        positional = None
+    elif command == "api-versions":
+        positional = None
+    elif command == "explain":
+        option("api-version", kind=api_version)
+        option("recursive", kind=boolean)
+        positional = 1
+    elif command == "version":
+        options("client short", boolean)
+        option("output", "-o", choices=["json", "yaml"])
+        positional = None
+    elif command == "cluster-info":
+        positional = None
+    elif command == "cluster-info dump":
+        option("all-namespaces", "-A", kind=boolean)
+        option("namespaces", kind=namespaces)
+        option("pod-running-timeout", kind=duration)
+        formatting()
+        positional = None
+    elif command == "wait":
+        selectors()
+        formatting()
+        option("all", kind=boolean)
+        option("for", kind=str)
+        option("timeout", kind=duration)
+        positional = "+"
+    elif command.startswith("rollout "):
+        option("revision", kind=integer)
+        if command == "rollout history":
+            formatting()
+        else:
+            option("watch", "-w", kind=boolean)
+            option("timeout", kind=duration)
+        positional = "+"
+    else:
+        raise ValueError("unsupported command")
+    if positional is not None:
+        parser.add_argument("resources", nargs=positional, type=resource)
+    return parser, flags, boolean_aliases
+
+
+def parse(argv):
+    root = argparse.ArgumentParser(
+        description=__doc__, allow_abbrev=False,
+        epilog="Commands: " + "; ".join(COMMANDS) + ". Run COMMAND --help for flags.",
+    )
+    if not argv or argv == ["--help"] or argv == ["-h"]:
+        root.print_help()
+        raise SystemExit(0 if argv else 2)
+    if any("\0" in item for item in argv) or "--" in argv:
+        root.error("NUL characters and argument passthrough (--) are forbidden")
+    command = argv[0]
+    rest = argv[1:]
+    if command in ("top", "rollout") or (command == "cluster-info" and rest[:1] == ["dump"]):
+        if not rest:
+            root.error("a read-only subcommand is required")
+        subcommand = rest.pop(0)
+        if command == "top":
+            subcommand = {"pods": "pod", "po": "pod", "nodes": "node", "no": "node"}.get(
+                subcommand, subcommand,
+            )
+        command += " " + subcommand
+    if command not in COMMANDS:
+        root.error("unsupported command; only explicitly allowed read operations are available")
+    parser, flags, booleans = parser_for(command)
+    # kubectl booleans take an optional '=true/false', never consume a resource name.
+    rest = [booleans[item] + "=true" if item in booleans else item for item in rest]
+    args = parser.parse_intermixed_args(rest)
+    if command == "logs" and not args.resources and args.selector is None:
+        parser.error("logs requires a pod/workload or --selector")
+    if command == "wait" and not getattr(args, "for"):
+        parser.error("wait requires --for")
+    if args.save_output is not None and os.path.lexists(args.save_output):
+        parser.error("--save-output already exists; choose a new file")
+    operation = ["get", "events"] if command == "events" else command.split()
+    # Every forwarded option was defined above; never forward the original argv.
+    operation += [
+        canonical + "=" + str(value)
+        for dest, canonical in flags if getattr(args, dest) is not None
+        for value in (
+            getattr(args, dest) if isinstance(getattr(args, dest), list)
+            else [getattr(args, dest)]
+        )
+    ]
+    resources = getattr(args, "resources", None)
+    if resources:
+        operation += resources if isinstance(resources, list) else [resources]
+    return operation, args.save_output
+
+
+def prefix(snapshot):
+    # Pin the server and TLS again, independently of the private config snapshot.
+    return [
+        KUBECTL, "--kubeconfig=" + str(snapshot), "--context=" + CONTEXT,
+        "--server=" + SERVER, "--tls-server-name=" + TLS_NAME,
+        "--insecure-skip-tls-verify=false", "--request-timeout=30s",
+    ]
+
+
+def check_config():
+    """Inspect only the selected trusted context, without printing credentials."""
+    result = subprocess.run(
+        [KUBECTL, "--kubeconfig=" + KUBECONFIG, "--context=" + CONTEXT,
+         "config", "view", "--minify", "--flatten", "--raw", "--output=json"],
+        env=ENV.copy(), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE, timeout=10, check=False,
+    )
+    if result.returncode:
+        raise ValueError("cannot inspect the Billerica kubeconfig; refresh credentials if needed")
+    config = json.loads(result.stdout)
+    contexts = config.get("contexts", [])
+    clusters = config.get("clusters", [])
+    users = config.get("users", [])
+    if len(contexts) != 1 or len(clusters) != 1 or len(users) != 1:
+        raise ValueError("expected exactly one Billerica context, cluster, and user")
+    context = contexts[0]
+    cluster = clusters[0]
+    user = users[0]
+    if (
+        context.get("name") != CONTEXT
+        or context.get("context", {}).get("cluster") != CLUSTER
+        or context.get("context", {}).get("user") != USER
+        or cluster.get("name") != CLUSTER
+        or user.get("name") != USER
+        or cluster.get("cluster", {}).get("server") != SERVER
+    ):
+        raise ValueError("Billerica context or API server does not match the pinned target")
+    transport = cluster.get("cluster", {})
+    if transport.get("insecure-skip-tls-verify") or transport.get("proxy-url") or (
+        transport.get("tls-server-name") not in (None, "", TLS_NAME)
+    ):
+        raise ValueError("unapproved proxy or TLS settings in the Billerica kubeconfig")
+    auth = user.get("user", {})
+    if auth.get("exec") is not None or auth.get("auth-provider") is not None:
+        raise ValueError("credential-helper execution is not allowed; use the managed certificate kubeconfig")
+    ca = transport.get("certificate-authority-data")
+    cert = auth.get("client-certificate-data")
+    key = auth.get("client-key-data")
+    if not all(isinstance(value, str) and value for value in (ca, cert, key)):
+        raise ValueError("expected the managed CA and client certificate credentials")
+    # Return only understood fields, not future kubeconfig extension behavior.
+    # A private snapshot prevents credential refreshes between validation and the
+    # read from introducing exec helpers, proxies, or a different context.
+    return {
+        "apiVersion": "v1", "kind": "Config", "current-context": CONTEXT,
+        "clusters": [{"name": CLUSTER, "cluster": {
+            "server": SERVER, "certificate-authority-data": ca,
+            "tls-server-name": TLS_NAME, "insecure-skip-tls-verify": False,
+        }}],
+        "users": [{"name": USER, "user": {
+            "client-certificate-data": cert, "client-key-data": key,
+        }}],
+        "contexts": [{"name": CONTEXT, "context": {
+            "cluster": CLUSTER, "user": USER,
+            "namespace": namespace(context.get("context", {}).get("namespace") or "default"),
+        }}],
+    }
+
+
+def main(argv=None):
+    operation, output = parse(list(sys.argv[1:] if argv is None else argv))
+    try:
+        config = check_config()
+        with tempfile.TemporaryDirectory(prefix="kubectl-readonly-") as directory:
+            snapshot = Path(directory) / "config.json"
+            fd = os.open(snapshot, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(fd, "w") as stream:
+                json.dump(config, stream)
+            command = prefix(snapshot) + operation
+            if output is None:
+                result = subprocess.run(command, env=ENV.copy(), stdin=subprocess.DEVNULL, check=False)
+            else:
+                # Stage privately; create the destination only on success, never
+                # overwrite a file/symlink, and don't buffer large dumps in memory.
+                with tempfile.TemporaryFile() as staged:
+                    result = subprocess.run(
+                        command, env=ENV.copy(), stdin=subprocess.DEVNULL, stdout=staged, check=False,
+                    )
+                    if result.returncode == 0:
+                        staged.seek(0)
+                        fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                        with os.fdopen(fd, "wb") as destination:
+                            shutil.copyfileobj(staged, destination)
+                        print(f"Saved response to {output}")
+        return result.returncode if result.returncode >= 0 else 128 - result.returncode
+    except (
+        OSError, ValueError, TypeError, AttributeError, KeyError,
+        argparse.ArgumentTypeError, subprocess.TimeoutExpired,
+    ):
+        # Neither kubeconfig contents nor helper stderr should leak on failure.
+        print("kubectl-readonly: operation failed or trusted Billerica configuration rejected", file=sys.stderr)
+        return 1
+    except KeyboardInterrupt:
+        return 130
+
+
+if __name__ == "__main__":
+    sys.exit(main())

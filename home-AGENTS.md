@@ -130,6 +130,14 @@ the guard before any command invoked through `kubectl`, regardless of the cluste
 context, namespace, resource, or subcommand (including `exec`). A previous guard
 failure does not prohibit subsequent `kubectl` work.
 
+For read-only RAD Billerica Kubernetes inspection, use the
+[kubectl-readonly skill](/home/dcolli23/.codex/skills/kubectl-readonly/SKILL.md)
+and invoke its executable directly. Its reusable approval is limited to
+`k8s/bg-rad-bill1-context`; it never authorizes writes, container execution,
+tunneling, or other clusters. This wrapper is also exempt from the container
+host guard. Unsupported operations need separate authorization, not a wrapper
+bypass or automatic expansion of its allowlist.
+
 Before doing any non-`kubectl` work with containers or invoking a
 container-oriented skill, run:
 
