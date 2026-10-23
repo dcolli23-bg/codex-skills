@@ -277,6 +277,9 @@ ln -sfn ~/code/codex-skills/journal/skills/jira-ticket-authoring ~/journal/.code
 readlink -f ~/journal/.codex/skills/jira-ticket-authoring
 ```
 
+Edits to its Jira write and network-escalation guidance take effect through this
+symlink; no client modification or reinstallation is needed.
+
 The installed `~/journal/AGENTS.md` begins with a source and editing workflow note
 that points back to this repository and its validation, commit, and push
 requirements for that instruction file. Preserve that note and the symlink when

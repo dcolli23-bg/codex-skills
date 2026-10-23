@@ -142,6 +142,22 @@ Do not create, edit, transition, or comment on Jira issues unless the user expli
 
 Drafting ticket content in chat is allowed by default. Actual Jira writes require explicit permission.
 
+### Gateway Network Execution
+
+Use the organization-managed `bga-connections` client for authorized Jira writes
+and inspect the selected connection's permissions before posting.
+
+When sandbox networking is restricted and BG AI Gateway access is already known
+to require escalation, request `sandbox_permissions: "require_escalated"` on the
+first authorized write command, with a concise justification. Do not repeat a
+known-failing sandbox attempt before requesting approval. If escalation is
+unavailable or denied, report the limitation rather than trying another route.
+
+This avoids a redundant failed attempt; it does not bypass approval. Preserve
+explicit authorization for the specific Jira write, gateway permission checks,
+and the read-only wrapper's boundary. Do not broaden that wrapper, change global
+network settings, or edit approval rules to make the write succeed.
+
 ## Output Rules
 
 When presenting a new ticket draft, provide:
