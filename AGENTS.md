@@ -352,6 +352,10 @@ scope has already passed the checkpoint. Questions can be presented in chat;
 routine fixes and mechanical edits are exempt. This takes effect through the
 existing `~/AGENTS.md` symlink.
 
+The home instructions also define conservative skill-improvement suggestions at
+task-completion handoffs: default to silence, use existing task evidence only,
+and require authorization before editing a skill. The same symlink exposes edits.
+
 The home instructions route BG GitHub, Jira, and Confluence reads through
 `bga-readonly`; install its symlink as described above alongside the
 organization-managed `bga-connections` skill so both the wrapper and its upstream

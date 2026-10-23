@@ -28,6 +28,37 @@ material new decisions arise.
 Routine fixes with an established intended behavior, formatting changes,
 and mechanical edits do not require this checkpoint.
 
+## Skill Improvement Suggestions
+
+A task-completion handoff is the final response that returns control to Dylan
+after completing the task in his prompt, not each message, tool call, or skill
+invocation.
+
+Before a task-completion handoff, briefly consider whether the completed
+work revealed a worthwhile improvement to a skill used during that work.
+
+Suggest an improvement only when:
+- An observed skill gap caused material rework, avoidable retries, an
+  incorrect result, or a substantive user correction.
+- The problem is demonstrably repeatable, or one occurrence provides
+  unusually clear evidence of a durable problem.
+- A specific, small, generalizable change would likely prevent recurrence.
+- Existing instructions do not already adequately address the problem.
+
+Do not turn every mistake into another instruction. If the agent simply
+failed to follow existing guidance, correct that behavior instead.
+Exclude transient service failures, speculative optimizations, minor
+preferences, and proposals that weaken required approvals or safeguards.
+
+Use evidence already available from the task. Do not launch extra tools,
+research, or a separate review solely to find improvements.
+
+Default to saying nothing. When warranted, append at most one brief
+suggestion identifying the skill, observed problem, and proposed change.
+Do not repeat an already-raised or resolved suggestion.
+
+Suggest only; do not edit skills without authorization.
+
 ## Obsidian Journal Vault
 
 Dylan's Obsidian vault is at `/home/dcolli23/journal` (`~/journal`). When a prompt is ambiguous or needs additional personal or work context, consult the vault for relevant dev logs, meeting notes, TODOs, acronym definitions, and informal thoughts before guessing or asking for clarification.
