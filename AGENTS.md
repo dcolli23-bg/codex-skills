@@ -126,6 +126,29 @@ Billerica P2 defaults. Cell-selection rules are in the skill's
 connection UUID is discovered at query time. Profile changes take effect through
 the existing `~/.codex/skills/bg-elasticsearch` symlink.
 
+## Jira Comment-only Wrapper Installation
+
+The `bg-jira-comments` skill and bounded executable live in
+`skills/bg-jira-comments/`. Install using the personal-skill symlink pattern:
+
+```bash
+ln -sfn ~/code/codex-skills/skills/bg-jira-comments ~/.codex/skills/bg-jira-comments
+readlink -f ~/.codex/skills/bg-jira-comments
+```
+
+It posts only new Jira comments through BG Gateway, with a separate reusable
+executable-prefix approval. It never edits issues or existing comments, and does
+not change approval rules. `bg-elasticsearch` delegates completed analyses to it
+when Dylan explicitly identifies the investigation ticket; that workflow has
+standing posting authorization. Other comment posting requires an explicit
+request. No other Jira write receives standing authorization.
+
+Validate locally without posting or contacting Jira:
+
+```bash
+python3 -m unittest discover -s skills/bg-jira-comments/tests -v
+```
+
 ## Kubernetes Read-only Wrapper Installation
 
 The Billerica-only kubectl wrapper lives in `skills/kubectl-readonly/`. Install

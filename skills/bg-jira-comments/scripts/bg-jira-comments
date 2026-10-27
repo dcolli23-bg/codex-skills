@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+"""Add Jira comments only; never expose a generic provider write command."""
+
+import argparse
+import json
+from pathlib import Path
+import re
+import subprocess
+import sys
+import uuid
+
+
+CLIENT = Path.home() / ".codex/skills/bga-connections/bga-connections"
+ENDPOINT = "/rest/api/3/issue/{issueIdOrKey}/comment"
+
+
+def client_command():
+    if CLIENT.is_file():
+        return [str(CLIENT)]
+    if CLIENT.with_suffix(".py").is_file():
+        return [sys.executable, str(CLIENT.with_suffix(".py"))]
+    raise ValueError("organization-managed bga-connections client not found")
+
+
+def connection_id(value):
+    try:
+        return str(uuid.UUID(value))
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("connection must be a UUID") from exc
+
+
+def issue_key(value):
+    if not re.fullmatch(r"[A-Z][A-Z0-9_]*-[1-9][0-9]*", value):
+        raise argparse.ArgumentTypeError("issue must be an uppercase Jira issue key")
+    return value
+
+
+def enabled_comment_endpoint(entries, levels):
+    for entry in entries:
+        if entry.get("enabled") is not True or entry.get("platformEnabled") is False:
+            continue
+        if levels:
+            if enabled_comment_endpoint(entry.get(levels[0], []), levels[1:]):
+                return True
+        elif entry.get("method") == "POST" and entry.get("path") == ENDPOINT:
+            return True
+        elif enabled_comment_endpoint(entry.get("children", []), ()):
+            return True
+    return False
+
+
+def invoke(command):
+    result = subprocess.run(command, capture_output=True, text=True, timeout=150)
+    if result.returncode:
+        raise ValueError("gateway command failed: " + (result.stderr or result.stdout).strip())
+    return json.loads(result.stdout)
+
+
+def require_permission(client, connection):
+    permissions = invoke(client + ["permissions", connection])
+    if not isinstance(permissions, dict):
+        raise ValueError("invalid Jira permission response")
+    if permissions.get("platform") != "jira" or permissions.get("callable") is not True:
+        raise ValueError("connection must be a callable Jira provider")
+    # Current grants are authoritative, even when stale legacy grants coexist.
+    if "products" in permissions:
+        allowed = enabled_comment_endpoint(permissions["products"], ("categories", "endpoints"))
+    else:
+        allowed = enabled_comment_endpoint(permissions.get("permissions", []), ())
+    if not allowed:
+        raise ValueError("Jira add-comment endpoint is not enabled")
+
+
+def comment_body(path):
+    document = json.loads(path.read_text(encoding="utf-8"))
+    if (
+        not isinstance(document, dict)
+        or set(document) != {"type", "version", "content"}
+        or document["type"] != "doc"
+        or type(document["version"]) is not int
+        or document["version"] != 1
+        or not isinstance(document["content"], list)
+        or not document["content"]
+    ):
+        raise ValueError("body file must contain one ADF document, not an API payload")
+    first = document["content"][0]
+    if not isinstance(first, dict) or first.get("type") != "paragraph":
+        raise ValueError("first paragraph must start with [codex]")
+    content = first.get("content", [])
+    if (
+        not isinstance(content, list) or not content
+        or not isinstance(content[0], dict)
+        or content[0].get("type") != "text"
+        or not isinstance(content[0].get("text"), str)
+        or not content[0]["text"].startswith("[codex]")
+    ):
+        raise ValueError("first paragraph must start with [codex]")
+    # No caller-supplied request fields (visibility, properties, etc.) are forwarded.
+    return json.dumps({"body": document}, ensure_ascii=True, allow_nan=False)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
+    commands = parser.add_subparsers(dest="command", required=True)
+    check = commands.add_parser("check", allow_abbrev=False)
+    check.add_argument("connection", type=connection_id)
+    post = commands.add_parser("post", allow_abbrev=False)
+    post.add_argument("connection", type=connection_id)
+    post.add_argument("--issue", required=True, type=issue_key)
+    post.add_argument("--body-file", required=True, type=Path)
+    args = parser.parse_args(argv)
+
+    attempted = False
+    try:
+        # Validate inputs before network access. Read the body only once.
+        body = comment_body(args.body_file) if args.command == "post" else None
+        client = client_command()
+        require_permission(client, args.connection)
+        if args.command == "check":
+            print("Jira add-comment permission verified; no comment posted.")
+            return 0
+        attempted = True
+        response = invoke(client + [
+            "call", args.connection, "--method", "POST",
+            "--path", f"/rest/api/3/issue/{args.issue}/comment",
+            "--header", "Content-Type: application/json", "--body-text", body,
+        ])
+        if (
+            not isinstance(response, dict)
+            or response.get("status") != 201
+            or response.get("bodyTruncated")
+        ):
+            raise ValueError("comment creation was not confirmed")
+        comment = json.loads(response.get("bodyText", ""))
+        if not isinstance(comment, dict) or not re.fullmatch(r"[1-9][0-9]*", str(comment.get("id", ""))):
+            raise ValueError("creation response has no valid comment ID")
+        print(json.dumps({"issue": args.issue, "commentId": str(comment["id"])}))
+        return 0
+    except (OSError, ValueError, TypeError, AttributeError, RecursionError, subprocess.TimeoutExpired) as exc:
+        print(f"bg-jira-comments: {exc}", file=sys.stderr)
+        if attempted:
+            print("Do not retry blindly: inspect Jira comments; this POST may have succeeded.", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

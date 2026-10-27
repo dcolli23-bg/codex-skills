@@ -1,6 +1,6 @@
 ---
 name: bg-elasticsearch
-description: Query Berkshire Grey Elasticsearch logs by customer, site, or cell, including plain-language requests for the FA cell and BIL/Billerica ARC or UMI/SUMI cells. Resolve saved RAD cell routes or use the organization index inventory for other sites and datasets.
+description: Query Berkshire Grey Elasticsearch logs by customer, site, or cell, including plain-language requests for the FA cell and BIL/Billerica ARC or UMI/SUMI cells. Resolve saved RAD cell routes or use the organization index inventory for other sites and datasets. Automatically publish completed analysis to an explicitly identified Jira investigation ticket using bg-jira-comments.
 ---
 
 # Elasticsearch Site Lookup
@@ -30,6 +30,15 @@ Read `references/instructions.md` before running Elasticsearch queries. Follow t
    Vault workflow below and the helper at `scripts/run_bg_vault_elastic_python.sh`
    for snippets importing `bg_vault_elastic`.
 7. For direct requests, use the resolved Elasticsearch URL, never the Kibana URL.
+8. When Dylan explicitly identifies a Jira ticket as the investigation target,
+   use `bg-jira-comments` to publish the completed analysis automatically, without
+   asking for draft/post confirmation. Its standing authorization covers useful
+   inconclusive results that narrow the issue, not empty/failed searches. Post one
+   `[codex]` comment per completed analysis; follow up only with materially new
+   findings. Read the ticket and existing comments first. Clarify ambiguous
+   targets; do not post to merely related tickets. Honor draft-only requests.
+   The comment-only executable's runtime approvals still apply. If posting is
+   blocked or uncertain, report it; never substitute a broader Jira write path.
 
 ## Local Environment
 
