@@ -11,6 +11,15 @@ cell 13 for camera errors today".
 
 Read `references/instructions.md` before running Elasticsearch queries. Follow that file when it conflicts with older examples in this skill.
 
+## Optional Jira Ticket
+
+If no investigation ticket is provided, briefly suggest once in the initial
+progress update: "If you have a Jira ticket for this investigation, share it and
+I'll post the completed analysis as a comment." Continue the analysis without
+waiting for a ticket or a reply; report results in chat and do not post to Jira
+unless Dylan identifies a target. Skip the suggestion if he has already declined
+or requested chat-only/draft-only work.
+
 ## Workflow
 
 1. Treat the customer and site as separate concepts.
