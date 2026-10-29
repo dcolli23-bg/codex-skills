@@ -4,6 +4,7 @@ import argparse
 from copy import deepcopy
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -108,20 +109,140 @@ class CollectionTests(unittest.TestCase):
                 with self.assertRaises(review.AuditError):
                     review.decode(body)
 
-    def test_bga_reads_download_not_inline_preview(self):
-        args = argparse.Namespace(
-            transport="bga", connection_id="discovered-at-runtime",
-            bga_cli=Path("/example/bga-connections"),
+
+class BGATransportTests(unittest.TestCase):
+    """Exercise real subprocesses using local stand-ins, without provider access."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.payload = {"body": "[codex] Verified fix.", "in_reply_to": 1}
+
+    def client(self, path):
+        """Select an explicit local client path without changing authentication."""
+        return review.Client(argparse.Namespace(
+            transport="bga", connection_id="discovered-at-runtime", bga_cli=path,
+        ))
+
+    def write_client(self, path, identifier, executable):
+        """Write a stand-in that records requests and returns a creation envelope."""
+        log = self.root / f"client-{identifier}.json"
+        path.write_text(
+            f"#!{sys.executable}\n"
+            "import json, sys\n"
+            "from pathlib import Path\n"
+            "args = sys.argv[1:]\n"
+            f"Path({str(log)!r}).write_text(json.dumps(args))\n"
+            "assert args[0] == 'call'\n"
+            "assert args[args.index('--method') + 1] == 'POST'\n"
+            "payload = json.loads(args[args.index('--body-text') + 1])\n"
+            f"created = dict(payload, id={identifier})\n"
+            "print(json.dumps({'status': 201, 'bodyText': json.dumps(created)}))\n"
         )
+        path.chmod(0o755 if executable else 0o644)
+        return log
+
+    def post(self, path):
+        """Send a reply only to the local stand-in selected by the helper."""
+        return self.client(path).post("/repos/owner/repo/pulls/123/comments", self.payload)
+
+    def test_reads_use_readonly_wrapper_and_complete_download(self):
         payload = [{"id": 1, "body": "full content " * 10000}]
+        fixture = self.root / "provider.json"
+        fixture.write_text(json.dumps(payload))
+        log = self.root / "read-arguments.json"
+        wrapper = self.root / "bga-readonly"
+        wrapper.write_text(
+            f"#!{sys.executable}\n"
+            "import json, sys\n"
+            "from pathlib import Path\n"
+            "args = sys.argv[1:]\n"
+            "assert args[:2] == ['get', 'discovered-at-runtime']\n"
+            f"Path({str(log)!r}).write_text(json.dumps(args))\n"
+            "output = Path(args[args.index('--output') + 1])\n"
+            f"output.write_text(Path({str(fixture)!r}).read_text())\n"
+            "print('A bounded preview is not the provider response.')\n"
+        )
+        wrapper.chmod(0o755)
+        with patch.object(review, "BGA_READONLY", wrapper):
+            result = self.client(self.root / "absent-write-client").get(
+                "/repos/owner/repo/pulls/123/comments", page=2
+            )
+        self.assertEqual(result, payload)
+        arguments = json.loads(log.read_text())
+        self.assertEqual(
+            arguments[arguments.index("--path") + 1],
+            "/repos/owner/repo/pulls/123/comments",
+        )
+        self.assertEqual(arguments[-4:], ["--query", "per_page=100", "--query", "page=2"])
 
-        def fake_run(command, body=None):
-            self.assertEqual(command[1], "download")
-            Path(command[command.index("--output") + 1]).write_text(json.dumps(payload))
-            return '{"status": 200}'
+    def test_denied_read_does_not_fall_back_to_organization_client(self):
+        wrapper = self.root / "bga-readonly"
+        wrapper.write_text(f"#!{sys.executable}\nimport sys\nsys.exit('Read denied')\n")
+        wrapper.chmod(0o755)
+        client_path = self.root / "client"
+        log = self.write_client(client_path, 1, True)
+        with patch.object(review, "BGA_READONLY", wrapper):
+            with self.assertRaisesRegex(review.AuditError, "Read denied"):
+                self.client(client_path).get("/comments")
+        self.assertFalse(log.exists())
 
-        with patch.object(review, "run", side_effect=fake_run):
-            self.assertEqual(review.Client(args).get("/comments", page=1), payload)
+    def test_missing_readonly_wrapper_fails_without_using_write_client(self):
+        client_path = self.root / "client"
+        log = self.write_client(client_path, 1, True)
+        with patch.object(review, "BGA_READONLY", self.root / "missing-wrapper"):
+            with self.assertRaisesRegex(review.AuditError, "read-only wrapper not found"):
+                self.client(client_path).get("/comments")
+        self.assertFalse(log.exists())
+
+    def test_explicit_legacy_executable_override_can_post(self):
+        path = self.root / "custom-client"
+        log = self.write_client(path, 1, True)
+        self.assertEqual(self.post(path), dict(self.payload, id=1))
+        self.assertTrue(log.exists())
+
+    def test_python_sibling_runs_without_executable_permissions(self):
+        path = self.root / "bga-connections"
+        log = self.write_client(path.with_suffix(".py"), 2, False)
+        self.assertEqual(self.post(path), dict(self.payload, id=2))
+        self.assertTrue(log.exists())
+
+    def test_explicit_python_override_expands_home_and_ignores_legacy_sibling(self):
+        legacy = self.root / "custom-client"
+        legacy_log = self.write_client(legacy, 1, True)
+        python_log = self.write_client(legacy.with_suffix(".py"), 2, False)
+        with patch.dict(os.environ, {"HOME": str(self.root)}):
+            result = self.post(Path("~/custom-client.py"))
+        self.assertEqual(result, dict(self.payload, id=2))
+        self.assertTrue(python_log.exists())
+        self.assertFalse(legacy_log.exists())
+
+    def test_legacy_client_remains_preferred_when_both_files_exist(self):
+        path = self.root / "bga-connections"
+        legacy_log = self.write_client(path, 1, True)
+        python_log = self.write_client(path.with_suffix(".py"), 2, False)
+        self.assertEqual(self.post(path), dict(self.payload, id=1))
+        self.assertTrue(legacy_log.exists())
+        self.assertFalse(python_log.exists())
+
+    def test_missing_client_names_both_candidates_before_running_commands(self):
+        path = self.root / "missing-client"
+        with patch.object(review, "run") as run:
+            with self.assertRaisesRegex(review.AuditError, "BGA client not found") as error:
+                self.post(path)
+        self.assertIn(str(path), str(error.exception))
+        self.assertIn(str(path.with_suffix(".py")), str(error.exception))
+        run.assert_not_called()
+
+    def test_failed_legacy_client_does_not_retry_with_python_sibling(self):
+        path = self.root / "bga-connections"
+        path.write_text(f"#!{sys.executable}\nimport sys\nsys.exit('Write denied')\n")
+        path.chmod(0o755)
+        python_log = self.write_client(path.with_suffix(".py"), 2, False)
+        with self.assertRaisesRegex(review.AuditError, "Write denied"):
+            self.post(path)
+        self.assertFalse(python_log.exists())
 
 
 class PostingTests(unittest.TestCase):

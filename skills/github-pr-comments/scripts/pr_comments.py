@@ -17,6 +17,9 @@ import sys
 import tempfile
 
 
+BGA_READONLY = Path.home() / ".codex/skills/bga-readonly/scripts/bga-readonly"
+
+
 class AuditError(Exception):
     """A completeness or posting-safety condition could not be established."""
 
@@ -46,6 +49,19 @@ def run(command, body=None):
     return result.stdout
 
 
+def bga_client_command(path):
+    """Support legacy clients and Python scripts without requiring script chmod."""
+    client = path.expanduser()
+    if not client.is_file():
+        python_client = client.with_suffix(".py")
+        if not python_client.is_file():
+            raise AuditError(f"BGA client not found: {client} or {python_client}")
+        client = python_client
+    if client.suffix == ".py":
+        return [sys.executable, str(client)]
+    return [str(client)]
+
+
 class Client:
     """Reuse existing CLI authentication; never read provider credentials."""
 
@@ -55,14 +71,17 @@ class Client:
             raise AuditError("BGA requires a discovered --connection-id.")
 
     def get(self, path, page=None):
+        """Read complete BG responses through the restricted read-only wrapper."""
         if self.args.transport == "gh":
             endpoint = path + (f"?per_page=100&page={page}" if page else "")
             return decode(run(["gh", "api", "--method", "GET", endpoint]))
+        if not BGA_READONLY.is_file():
+            raise AuditError(f"BGA read-only wrapper not found: {BGA_READONLY}")
         with tempfile.TemporaryDirectory(prefix="pr-review-download-") as temp:
             output = Path(temp) / "body.json"
             command = [
-                str(self.args.bga_cli.expanduser()), "download",
-                self.args.connection_id, "--method", "GET", "--path", path,
+                str(BGA_READONLY), "get",
+                self.args.connection_id, "--path", path,
                 "--output", str(output),
             ]
             if page:
@@ -71,13 +90,14 @@ class Client:
             return decode(output.read_text(encoding="utf-8"))
 
     def post(self, path, payload):
+        """Use the selected write client without retrying failed provider requests."""
         body = json.dumps(payload)
         if self.args.transport == "gh":
             return decode(run(
                 ["gh", "api", "--method", "POST", path, "--input", "-"], body
             ))
-        envelope = decode(run([
-            str(self.args.bga_cli.expanduser()), "call", self.args.connection_id,
+        envelope = decode(run(bga_client_command(self.args.bga_cli) + [
+            "call", self.args.connection_id,
             "--method", "POST", "--path", path,
             "--header", "Content-Type: application/json", "--body-text", body,
         ]))
@@ -351,6 +371,8 @@ def main():
         command.add_argument(
             "--bga-cli", type=Path,
             default=Path("~/.codex/skills/bga-connections/bga-connections"),
+            help="BG write client; accepts a legacy executable or .py script. "
+                 "Reads always use the installed bga-readonly wrapper.",
         )
     args = parser.parse_args()
     try:

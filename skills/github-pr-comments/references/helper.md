@@ -17,10 +17,22 @@ Otherwise select one helper transport:
 - `--transport gh`: uses an already authenticated `gh api`; does not authenticate
   or change accounts.
 - `--transport bga --connection-id ID`: discover the ID with the
-  `bga-connections` skill's `list` command. The default CLI path is
-  `~/.codex/skills/bga-connections/bga-connections`; override with `--bga-cli`.
-  Provider credentials stay with the existing gateway. GETs use `download`
-  rather than the gateway's bounded inline preview.
+  `bga-readonly` skill's `list` command and inspect its `permissions` before use.
+  Reads invoke the installed
+  `~/.codex/skills/bga-readonly/scripts/bga-readonly` executable directly, using
+  `get --output` for complete provider bodies instead of bounded inline previews.
+  Writes use the organization-managed `bga-connections` client; provider
+  credentials stay with the existing gateway.
+
+The default BG write-client path is
+`~/.codex/skills/bga-connections/bga-connections`. When that file is absent, the
+helper selects its `.py` sibling. Python scripts are launched with the helper's
+Python interpreter and do not need executable permissions. An explicit
+`--bga-cli /path/to/client` or `--bga-cli /path/to/client.py` overrides the write
+client only; reads still use the installed read-only wrapper and its configured
+organization client. A missing read-only wrapper or write client stops the
+operation rather than switching transports. Client selection happens before a
+write request; failed requests never trigger a retry through the other filename.
 
 Do not change transport to evade an approval or permission denial.
 

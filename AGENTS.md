@@ -296,6 +296,14 @@ Use `$github-pr-comments` when posting is requested. The shared
 `scripts/pr_comments.py` helper retains discussion collection and reply-plan
 posting with preview, duplicate checks, and receipts; the old follow-up command
 delegates to it. Posting still requires explicit user authorization.
+Its BG transport invokes the installed `bga-readonly` executable for complete
+reads and supports either organization-client filename for writes: the legacy
+`bga-connections` executable or `bga-connections.py` launched with Python.
+`--bga-cli` overrides only the write client, including explicit `.py` paths.
+The existing skill symlink exposes these updates without reinstalling.
+Validate offline with
+`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/github-pr-comments/tests -v`;
+the tests use local stand-ins and never contact GitHub.
 
 ## Journal-Local Skills
 
