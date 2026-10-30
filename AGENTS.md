@@ -54,6 +54,7 @@ instruction files.
 - `scripts/`: shared scripts used by multiple skills or home-directory instructions.
 - `journal/skills/`: source-controlled skills that should be installed project-locally into Dylan's journal vault.
 - `journal/AGENTS.md`: the source-controlled AGENTS instructions for Dylan's journal vault.
+- `documentation-style.md`: shared documentation conventions and positive examples, routed from the home instructions.
 - `.venvs/`: local virtual environments used by skills. This directory is intentionally ignored by git.
 - `SYSTEMD_JOURNAL_SUMMARY_JOBS.md`: setup and troubleshooting instructions for the user-level systemd jobs that run scheduled journal daily and weekly summaries.
 
@@ -401,6 +402,12 @@ The installed `~/AGENTS.md` begins with a source and editing workflow note that
 points back to this repository and its validation, commit, and push requirements.
 Preserve that note and the symlink when updating the home instructions.
 
+The home instructions route documentation tasks to the tracked
+`documentation-style.md` in this repository. Keep the routing in
+`home-AGENTS.md` and the style details in the guide. The existing home symlink
+exposes this routing wherever the home instructions are loaded; no additional
+skill, symlink, or global instruction file is installed.
+
 The home instructions require a pre-implementation decision checkpoint for
 features and changes with material design choices, regardless of Plan mode.
 Agents offer Grill and wait for Dylan to choose it or waive it unless that
@@ -445,6 +452,7 @@ Verify the symlink with:
 
 ```bash
 readlink -f ~/AGENTS.md
+test -r ~/code/codex-skills/documentation-style.md
 ```
 
 ## Dorkspace Skill Installation

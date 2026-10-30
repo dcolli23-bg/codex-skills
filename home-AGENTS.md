@@ -4,6 +4,18 @@
 
 `~/AGENTS.md` is installed as a symlink to `~/code/codex-skills/home-AGENTS.md`. Before editing these instructions, read `~/code/codex-skills/AGENTS.md` and follow its repository workflow, including validation, committing, and pushing requested changes unless Dylan explicitly says otherwise. Edit the tracked source and preserve the symlink.
 
+## Documentation Style
+
+For documentation tasks, read
+[documentation-style.md](/home/dcolli23/code/codex-skills/documentation-style.md)
+before drafting or editing. It defines the default for API/schema references,
+guides, runbooks, design docs, proposals, and changelogs. Explicit user
+instructions and task- or repository-specific conventions take precedence.
+
+Keep narrow edits narrow. This routing does not change the conventions for chat,
+Jira tickets, PR reviews, or personal journal notes unless Dylan explicitly asks
+to apply the documentation style to them.
+
 ## Pre-implementation Decision Checkpoint
 
 For new features and changes involving material scope, behavior, interface,
