@@ -275,6 +275,9 @@ it skips the pass message when a material criterion remains unverified or a
 matching review already exists for that head. Findings still require an
 explicit posting request. The general review drafts findings without editing
 or posting unless explicitly requested.
+The general review compares lint/format tool versions, configuration, and commands
+with CI before claiming parity; mismatched local passes remain qualified evidence.
+This takes effect through its existing skill symlink.
 Review findings begin with `[codex]` and a concise rule or finding title, with
 the explanation below.
 Install `github-pr-comments` below for its shared posting workflow.
