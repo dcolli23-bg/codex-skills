@@ -10,15 +10,27 @@ these criteria.
 
 ## Python packaging and package layout
 
-- **Blocking requirement when `setup.py` changes:** Apply the standard BG setup
-  and package discovery rule only if the PR adds, deletes, or edits the BG-owned
-  package's `setup.py` in any way, including a comment or header edit. Then
-  flag any departure as a **blocker** and request correction before merge. A
-  working build does not waive this convention; only an explicit exception
-  from Dylan permits a deviation. If `setup.py` is untouched, do not raise a
-  setup or package-discovery blocker merely because the PR changes other files
-  in that package or relies on its existing packaging. Keep unrelated legacy
-  and third-party packages outside the review's scope.
+- **Blocking requirement when Python packaging changes:** Apply the standard
+  BG setup and package discovery rule when a PR adds, deletes, or edits a
+  BG-owned package's `setup.py` in any way, including a comment or header edit,
+  **or** changes build/package declarations in `pyproject.toml` or `setup.cfg`.
+  Adding parallel packaging metadata triggers the rule even when `setup.py`
+  is unchanged. Flag departures as **blockers**; a working build does not waive
+  the convention, and only an explicit exception from Dylan permits a deviation.
+  Tooling-only changes (such as `[tool.ruff]`, formatter, or pytest settings)
+  and conventional ament `[develop]`/`[install]` script destinations do not
+  activate this trigger. Do not demand migration of untouched legacy packaging
+  for unrelated source changes. Keep third-party packages outside this rule.
+- Inspect the effective packaging configuration across `setup.py`,
+  `pyproject.toml`, `setup.cfg`, `package.xml`, and tracked package symlinks.
+  Build/package declarations include `[build-system]`, `[project]` (including
+  dependency lists), and setuptools metadata, dependency, package-discovery,
+  or script/entry-point settings. For BG build packages, do not introduce or
+  extend parallel packaging metadata in TOML/CFG alongside or in place of the
+  standard `setup.py`/`bg_build` helper unless Dylan explicitly authorizes an
+  exception.
+  Removing the old metadata or leaving `setup.py` untouched must not hide a
+  replacement build path from review.
 - Keep `setup.py` to the standard helper invocation, apart from normal headers:
 
   ```python
@@ -82,9 +94,9 @@ these criteria.
   the appropriate test dependencies. Use valid dependency keys; do not copy
   pip requirement strings into XML or invent mappings. Container dependency
   installation and version pins belong in the appropriate image/starters
-  configuration, not custom `setup.py` dependency lists. For extracted shared
-  code, the shared package owns its dependencies and callers depend on that
-  package.
+  configuration, not custom `setup.py` dependency lists or parallel
+  `[project].dependencies` declarations. For extracted shared code, the shared
+  package owns its dependencies and callers depend on that package.
 - Let BG tooling discover scripts and generate setup metadata. Read the
   selected checkout's `bg_build/python_setup.py` when discovery is uncertain.
   Examples of the minimal setup and source symlink pattern are

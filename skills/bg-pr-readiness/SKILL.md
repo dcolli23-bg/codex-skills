@@ -71,18 +71,26 @@ Python's standard `logging` logger or the C++ `bg_logging` logger is a
 and logging path before concluding that a requirement is unmet. An existing
 noncompliant helper does not exempt new functionality that relies on it.
 
-Only when a PR adds, deletes, or changes a BG-owned package's `setup.py` in any
-way, departures from the standard `generate_setuptools_setup()` setup and
-package discovery layout are **blockers**. Check `setup.py`, `package.xml`, and
-tracked package symlinks together using the
+When a PR changes BG-owned Python packaging, departures from the standard
+`generate_setuptools_setup()` setup and package discovery layout are
+**blockers**. The trigger includes any `setup.py` edit and added, deleted, or
+changed build/package declarations in `pyproject.toml` or `setup.cfg`, even
+when `setup.py` is untouched. Check the effective configuration across these
+files, `package.xml`, and tracked package symlinks together using the
 [Python packaging criteria](references/review-criteria.md#python-packaging-and-package-layout).
-An untouched `setup.py` does not trigger this blocker merely because other
-files in the package change. When the rule applies, do not accept custom setup
-overrides as harmless boilerplate or defer correcting the affected package to
+For BG build packages, introducing or extending parallel build/project metadata
+alongside or in place of the standard helper is blocking unless Dylan explicitly
+authorizes an exception. A successful build does not waive the convention.
+Tooling-only configuration and conventional ament script destinations do not
+activate this trigger; unrelated source changes do not require migrating
+untouched legacy packaging. Do not defer an applicable packaging correction to
 a follow-on ticket unless Dylan explicitly allows it.
 Import-path manipulation in application code, scripts, or tests is likewise a
 **blocker**: require ordinary package imports through the standard `bg_build`
 setup instead of filesystem-based import workarounds.
+
+When maintaining these rules, evaluate the
+[offline packaging regression cases](references/packaging-regressions.md).
 
 These are Dylan's proposed review standards, **not proof that every existing
 BG repository already follows them**. Apply them to new or changed BG-owned

@@ -252,11 +252,18 @@ affected production paths is a blocking finding. These review rules take effect
 through the existing symlinks. The shared criteria also require changed Python
 scripts to bootstrap in the guarded entrypoint before calling application
 `main`, and to use deployment-configured logging handlers for operational logs.
-Nonstandard `setup.py` customization or Python
-package discovery layout is blocking only when the PR changes that BG-owned
-package's `setup.py` in any way; the criteria document the minimal BG helper
-invocation, source symlink convention, and dependency declarations in
-`package.xml`. Import-path manipulation in
+Nonstandard Python packaging or package discovery layout is blocking when a PR
+changes a BG-owned package's `setup.py` in any way or changes build/package
+declarations in `pyproject.toml` or `setup.cfg`. An unchanged `setup.py` cannot
+exempt new parallel packaging metadata. Tooling-only configuration and conventional
+ament script destinations do not activate that trigger; unrelated source changes
+do not require migrating untouched legacy packaging. The criteria document the
+minimal BG helper invocation, source symlink convention, and dependency
+declarations in `package.xml`. These updates take
+effect through the existing skill symlinks. When maintaining the packaging
+rules, evaluate the offline cases in
+`skills/bg-pr-readiness/references/packaging-regressions.md`.
+Import-path manipulation in
 application code, scripts, or tests is also blocking; require normal package
 imports through `bg_build` instead of `sys.path` or filesystem-loader workarounds.
 The shared criteria also require all Python imports in the top-of-file,
