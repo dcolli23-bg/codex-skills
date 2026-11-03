@@ -1,0 +1,4 @@
+interface:
+  display_name: "Architect Coordinator"
+  short_description: "Coordinate bounded, human-reviewable agent work"
+  default_prompt: "Use $architect-coordinator to plan and coordinate this change, delegating source work while keeping scope and review size bounded."

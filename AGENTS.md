@@ -192,6 +192,22 @@ link to the installed skill for their pre-implementation checkpoint. Questions
 can be answered directly in chat; the optional browser UI is included unchanged
 from upstream.
 
+## Architect Coordinator Installation
+
+The bounded delegation workflow lives in `skills/architect-coordinator/`.
+Install it using the personal-skill symlink pattern:
+
+```bash
+ln -sfn ~/code/codex-skills/skills/architect-coordinator ~/.codex/skills/architect-coordinator
+readlink -f ~/.codex/skills/architect-coordinator
+```
+
+Use `$architect-coordinator` when requesting architectural coordination and
+delegated source work. It scales agent count to the task, preserves the existing
+Grill and authorization boundaries, and prioritizes narrow scope and human
+reviewability. Its supporting templates cover the shared contract, assignments,
+and evidence ledger; no global home-instruction routing is added.
+
 ## Codex Session Release Installation
 
 The session-release skill lives in `skills/codex-session-release/`. Install it
