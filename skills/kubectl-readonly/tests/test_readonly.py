@@ -9,6 +9,7 @@ from pathlib import Path
 import runpy
 import subprocess
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -34,6 +35,10 @@ CONFIG = {
 
 class ReadonlyTests(unittest.TestCase):
     def setUp(self):
+        self.account_home = "/home/test-laptop.user@example.com"
+        self.account_patch = patch("pwd.getpwuid", side_effect=lambda _: SimpleNamespace(pw_dir=self.account_home))
+        self.mock_account = self.account_patch.start()
+        self.addCleanup(self.account_patch.stop)
         self.config = copy.deepcopy(CONFIG)
         self.operations = []
         self.snapshots = []
@@ -45,12 +50,15 @@ class ReadonlyTests(unittest.TestCase):
 
     def fake_run(self, command, **kwargs):
         self.assertEqual(command[0], "/usr/local/bin/kubectl")
-        self.assertEqual(kwargs["env"], MODULE["ENV"])
+        self.assertEqual(kwargs["env"], {
+            "HOME": self.account_home, "PATH": "/usr/bin:/bin",
+            "LANG": "C.UTF-8", "KUBECTL_KUBERC": "false",
+        })
         self.assertEqual(kwargs["stdin"], subprocess.DEVNULL)
         self.assertFalse(kwargs.get("shell", False))
         if "config" in command:
             self.assertEqual(command[1:], [
-                "--kubeconfig=/home/dcolli23/.kube/config-auto",
+                "--kubeconfig=" + self.account_home + "/.kube/config-auto",
                 "--context=" + CONTEXT, "config", "view", "--minify",
                 "--flatten", "--raw", "--output=json",
             ])
@@ -283,6 +291,23 @@ class ReadonlyTests(unittest.TestCase):
         }):
             self.assertEqual(MAIN(["get", "pods"]), 0)
         self.assertEqual(self.mock_run.call_count, 2)
+
+    def test_managed_config_follows_os_account_on_both_hosts(self):
+        for home in ("/home/desktop-user", "/home/laptop.user@example.com"):
+            with self.subTest(home=home), patch.dict(os.environ, {
+                "HOME": "/tmp/evil", "KUBECONFIG": "/tmp/evil",
+            }):
+                self.account_home = home
+                self.assertEqual(MAIN(["get", "pods"]), 0)
+                self.mock_account.assert_called_with(os.getuid())
+
+    def test_unknown_os_account_fails_closed_without_subprocess(self):
+        self.mock_account.side_effect = KeyError("unmapped uid")
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(MAIN(["get", "pods"]), 1)
+        self.mock_run.assert_not_called()
+        self.assertNotIn("Traceback", stderr.getvalue())
 
     def test_config_target_and_transport_fail_closed(self):
         mutations = [

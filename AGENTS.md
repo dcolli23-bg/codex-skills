@@ -168,6 +168,8 @@ certificate-only kubeconfig snapshot. Existing Kubernetes RBAC still applies,
 including to Secret reads. Mutations, execution, tunneling, other clusters, raw
 API paths, and unsupported flags are never covered. This wrapper does not
 provision cluster-side RBAC or change Codex approval rules.
+The managed kubeconfig is `.kube/config-auto` beneath the current OS account's
+home directory; caller `HOME` and `KUBECONFIG` overrides are ignored.
 
 Validate changes locally without contacting Kubernetes:
 
