@@ -15,6 +15,8 @@ import tempfile
 
 KUBECTL = "/usr/local/bin/kubectl"
 CONTEXT = "k8s/bg-rad-bill1-context"
+PRIVILEGED_CONTEXT = "k8s/bg-rad-bill1-context-(privileged)"
+CONTEXTS = (CONTEXT, PRIVILEGED_CONTEXT)
 CLUSTER = "k8s/bg-rad-bill1-cluster"
 USER = "k8s/bg-rad-bill1-user"
 SERVER = "https://k8s.rad-bill1.bg.bgrey.io:6443"
@@ -98,7 +100,7 @@ def parser_for(command):
     """Construct a leaf parser and its explicit flag-to-argument mapping."""
     parser = argparse.ArgumentParser(
         prog="kubectl-readonly " + command, allow_abbrev=False,
-        description=f"Read-only {command} on {CONTEXT}. Unknown flags are rejected.",
+        description=f"Read-only {command} on RAD Billerica. Unknown flags are rejected.",
     )
     flags = []
     boolean_aliases = {}
@@ -129,7 +131,11 @@ def parser_for(command):
         options("allow-missing-template-keys show-managed-fields", boolean)
 
     option("namespace", "-n", kind=namespace)
-    option("context", choices=[CONTEXT])
+    # Wrapper-owned selection, pinned once in the kubectl prefix, never forwarded.
+    parser.add_argument(
+        "--context", choices=CONTEXTS, default=CONTEXT,
+        help="Billerica context; defaults to %(default)s",
+    )
     option("request-timeout", kind=duration)
     # A wrapper-owned exclusive-create output file, not kubectl's -o format flag.
     parser.add_argument("--save-output", type=Path, help="save successful stdout to a new private file")
@@ -260,13 +266,13 @@ def parse(argv):
     resources = getattr(args, "resources", None)
     if resources:
         operation += resources if isinstance(resources, list) else [resources]
-    return operation, args.save_output
+    return operation, args.save_output, args.context
 
 
-def prefix(snapshot):
+def prefix(snapshot, selected_context):
     # Pin the server and TLS again, independently of the private config snapshot.
     return [
-        KUBECTL, "--kubeconfig=" + str(snapshot), "--context=" + CONTEXT,
+        KUBECTL, "--kubeconfig=" + str(snapshot), "--context=" + selected_context,
         "--server=" + SERVER, "--tls-server-name=" + TLS_NAME,
         "--insecure-skip-tls-verify=false", "--request-timeout=30s",
     ]
@@ -282,10 +288,10 @@ def account_environment():
     }
 
 
-def check_config(env):
+def check_config(env, selected_context):
     """Inspect only the selected trusted context, without printing credentials."""
     result = subprocess.run(
-        [KUBECTL, "--kubeconfig=" + str(Path(env["HOME"]) / ".kube/config-auto"), "--context=" + CONTEXT,
+        [KUBECTL, "--kubeconfig=" + str(Path(env["HOME"]) / ".kube/config-auto"), "--context=" + selected_context,
          "config", "view", "--minify", "--flatten", "--raw", "--output=json"],
         env=env.copy(), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, timeout=10, check=False,
@@ -302,7 +308,7 @@ def check_config(env):
     cluster = clusters[0]
     user = users[0]
     if (
-        context.get("name") != CONTEXT
+        context.get("name") != selected_context
         or context.get("context", {}).get("cluster") != CLUSTER
         or context.get("context", {}).get("user") != USER
         or cluster.get("name") != CLUSTER
@@ -327,7 +333,7 @@ def check_config(env):
     # A private snapshot prevents credential refreshes between validation and the
     # read from introducing exec helpers, proxies, or a different context.
     return {
-        "apiVersion": "v1", "kind": "Config", "current-context": CONTEXT,
+        "apiVersion": "v1", "kind": "Config", "current-context": selected_context,
         "clusters": [{"name": CLUSTER, "cluster": {
             "server": SERVER, "certificate-authority-data": ca,
             "tls-server-name": TLS_NAME, "insecure-skip-tls-verify": False,
@@ -335,7 +341,7 @@ def check_config(env):
         "users": [{"name": USER, "user": {
             "client-certificate-data": cert, "client-key-data": key,
         }}],
-        "contexts": [{"name": CONTEXT, "context": {
+        "contexts": [{"name": selected_context, "context": {
             "cluster": CLUSTER, "user": USER,
             "namespace": namespace(context.get("context", {}).get("namespace") or "default"),
         }}],
@@ -343,16 +349,16 @@ def check_config(env):
 
 
 def main(argv=None):
-    operation, output = parse(list(sys.argv[1:] if argv is None else argv))
+    operation, output, selected_context = parse(list(sys.argv[1:] if argv is None else argv))
     try:
         env = account_environment()
-        config = check_config(env)
+        config = check_config(env, selected_context)
         with tempfile.TemporaryDirectory(prefix="kubectl-readonly-") as directory:
             snapshot = Path(directory) / "config.json"
             fd = os.open(snapshot, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
             with os.fdopen(fd, "w") as stream:
                 json.dump(config, stream)
-            command = prefix(snapshot) + operation
+            command = prefix(snapshot, selected_context) + operation
             if output is None:
                 result = subprocess.run(command, env=env.copy(), stdin=subprocess.DEVNULL, check=False)
             else:

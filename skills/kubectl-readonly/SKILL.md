@@ -15,11 +15,22 @@ installed executable directly:
 ~/.codex/skills/kubectl-readonly/scripts/kubectl-readonly logs sumi-2204-0 -n cell9 -c procman --tail=100 --timestamps
 ```
 
-The target is fixed to `k8s/bg-rad-bill1-context` and
-`https://k8s.rad-bill1.bg.bgrey.io:6443`, using the managed
-`.kube/config-auto` beneath the current OS account's home directory. Caller
-`HOME` and `KUBECONFIG` overrides are ignored. No context argument is needed. The identical
-`--context` is accepted; every other context is rejected. The wrapper validates
+The default context is `k8s/bg-rad-bill1-context`. When Dylan explicitly requests
+the privileged Billerica context, select it with a quoted argument:
+
+```bash
+~/.codex/skills/kubectl-readonly/scripts/kubectl-readonly get pods -n cell9 --context='k8s/bg-rad-bill1-context-(privileged)'
+```
+
+Do not select the privileged context automatically or retry with it after a
+permission or authentication failure. Only these two contexts are accepted;
+both retain the same read-only command and flag restrictions. Explicit
+`--context=k8s/bg-rad-bill1-context` is also accepted. Put `--context` after the
+command/subcommand, as shown above.
+
+The API server remains pinned to `https://k8s.rad-bill1.bg.bgrey.io:6443`, using
+the managed `.kube/config-auto` beneath the current OS account's home directory.
+Caller `HOME` and `KUBECONFIG` overrides are ignored. The wrapper validates
 the selected context, user, cluster, and TLS settings before a read, pins the
 server again on the actual invocation, and does not change the current context.
 It uses a private, allowlisted certificate-only kubeconfig snapshot for the read

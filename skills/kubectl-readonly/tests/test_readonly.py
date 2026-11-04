@@ -18,6 +18,8 @@ MODULE = runpy.run_path(str(Path(__file__).parents[1] / "scripts/kubectl-readonl
 MAIN = MODULE["main"]
 PARSE = MODULE["parse"]
 CONTEXT = MODULE["CONTEXT"]
+PRIVILEGED_CONTEXT = MODULE["PRIVILEGED_CONTEXT"]
+CONTEXTS = MODULE["CONTEXTS"]
 CLUSTER = MODULE["CLUSTER"]
 USER = MODULE["USER"]
 SERVER = MODULE["SERVER"]
@@ -40,6 +42,7 @@ class ReadonlyTests(unittest.TestCase):
         self.mock_account = self.account_patch.start()
         self.addCleanup(self.account_patch.stop)
         self.config = copy.deepcopy(CONFIG)
+        self.selected_context = CONTEXT
         self.operations = []
         self.snapshots = []
         self.operation_status = 0
@@ -47,6 +50,12 @@ class ReadonlyTests(unittest.TestCase):
         self.run_patch = patch("subprocess.run", side_effect=self.fake_run)
         self.mock_run = self.run_patch.start()
         self.addCleanup(self.run_patch.stop)
+
+    def select_context(self, selected_context):
+        self.selected_context = selected_context
+        self.config = copy.deepcopy(CONFIG)
+        self.config["current-context"] = selected_context
+        self.config["contexts"][0]["name"] = selected_context
 
     def fake_run(self, command, **kwargs):
         self.assertEqual(command[0], "/usr/local/bin/kubectl")
@@ -59,7 +68,7 @@ class ReadonlyTests(unittest.TestCase):
         if "config" in command:
             self.assertEqual(command[1:], [
                 "--kubeconfig=" + self.account_home + "/.kube/config-auto",
-                "--context=" + CONTEXT, "config", "view", "--minify",
+                "--context=" + self.selected_context, "config", "view", "--minify",
                 "--flatten", "--raw", "--output=json",
             ])
             return subprocess.CompletedProcess(command, 0, stdout=json.dumps(self.config).encode())
@@ -67,10 +76,15 @@ class ReadonlyTests(unittest.TestCase):
         self.assertEqual(snapshot.stat().st_mode & 0o777, 0o600)
         self.assertEqual(snapshot.parent.stat().st_mode & 0o777, 0o700)
         config = json.loads(snapshot.read_text())
+        self.assertEqual(config["current-context"], self.selected_context)
+        self.assertEqual(config["contexts"], [{"name": self.selected_context, "context": {
+            "cluster": CLUSTER, "user": USER,
+            "namespace": self.config["contexts"][0]["context"].get("namespace", "default"),
+        }}])
         self.assertEqual(config["clusters"][0]["cluster"]["server"], SERVER)
         self.assertEqual(config["users"][0]["user"], CONFIG["users"][0]["user"])
         self.assertEqual(command[2:7], [
-            "--context=" + CONTEXT, "--server=" + SERVER,
+            "--context=" + self.selected_context, "--server=" + SERVER,
             "--tls-server-name=k8s.rad-bill1.bg.bgrey.io",
             "--insecure-skip-tls-verify=false", "--request-timeout=30s",
         ])
@@ -118,11 +132,13 @@ class ReadonlyTests(unittest.TestCase):
             (["rollout", "status", "statefulset/sumi-2204", "--watch=false", "--timeout=1m"],
              ["rollout", "status", "--watch=false", "--timeout=1m", "statefulset/sumi-2204"]),
         ]
-        for args, expected in cases:
-            with self.subTest(args=args):
-                self.assertEqual(MAIN(args), 0)
-                self.assertEqual(self.operations[-1], expected)
-                self.assertFalse(self.snapshots[-1].exists())
+        for selected_context in CONTEXTS:
+            self.select_context(selected_context)
+            for args, expected in cases:
+                with self.subTest(context=selected_context, args=args):
+                    self.assertEqual(MAIN(args + ["--context", selected_context]), 0)
+                    self.assertEqual(self.operations[-1], expected)
+                    self.assertFalse(self.snapshots[-1].exists())
 
     def test_common_realistic_inspection(self):
         columns = "custom-columns=NS:.metadata.namespace,IMAGES:.status.containerStatuses[*].imageID"
@@ -184,12 +200,57 @@ class ReadonlyTests(unittest.TestCase):
                     expected,
                 )
 
-    def test_pinned_context_is_accepted_but_no_other_context(self):
-        self.assertEqual(MAIN(["get", "pods", "--context", CONTEXT]), 0)
-        self.assertIn("--context=" + CONTEXT, self.operations[-1])
-        for value in ("k8s/bg-rad-itf-context", "", "https://evil"):
+    def test_only_explicit_allowlisted_contexts_are_accepted(self):
+        for selected_context in CONTEXTS:
+            self.select_context(selected_context)
+            for context_args in (["--context", selected_context], ["--context=" + selected_context]):
+                with self.subTest(context_args=context_args):
+                    self.assertEqual(MAIN(["get", "pods"] + context_args), 0)
+                    self.assertEqual(self.operations[-1], ["get", "pods"])
+        for value in (
+            "k8s/bg-rad-itf-context", "", "https://evil",
+            CONTEXT + "-privileged", PRIVILEGED_CONTEXT + "-other",
+        ):
             self.reject(["get", "pods", "--context=" + value])
         self.reject(["--context=" + CONTEXT, "get", "pods"])
+
+    def test_default_ignores_current_context_and_caller_context_environment(self):
+        self.config["current-context"] = PRIVILEGED_CONTEXT
+        with patch.dict(os.environ, {"KUBECTL_CONTEXT": PRIVILEGED_CONTEXT}):
+            self.assertEqual(MAIN(["get", "pods"]), 0)
+        self.assertEqual(self.selected_context, CONTEXT)
+
+    def test_selected_context_mismatch_fails_without_fallback(self):
+        for selected_context, returned_context in (
+            (CONTEXT, PRIVILEGED_CONTEXT), (PRIVILEGED_CONTEXT, CONTEXT),
+        ):
+            self.select_context(selected_context)
+            self.config["contexts"][0]["name"] = returned_context
+            self.mock_run.reset_mock()
+            with self.subTest(context=selected_context), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(MAIN(["get", "pods", "--context", selected_context]), 1)
+            self.assertEqual(self.mock_run.call_count, 1)
+        self.assertFalse(self.operations)
+
+    def test_config_failure_does_not_retry_with_another_context(self):
+        self.mock_run.side_effect = None
+        self.mock_run.return_value = subprocess.CompletedProcess([], 1, stdout=b"", stderr=b"denied")
+        for context_args in ([], ["--context", PRIVILEGED_CONTEXT]):
+            self.mock_run.reset_mock()
+            with self.subTest(context_args=context_args), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(MAIN(["get", "pods"] + context_args), 1)
+            self.assertEqual(self.mock_run.call_count, 1)
+            selected_context = context_args[-1] if context_args else CONTEXT
+            self.assertIn("--context=" + selected_context, self.mock_run.call_args.args[0])
+
+    def test_read_failure_does_not_retry_with_another_context(self):
+        self.operation_status = 1
+        for selected_context in CONTEXTS:
+            self.select_context(selected_context)
+            self.mock_run.reset_mock()
+            with self.subTest(context=selected_context):
+                self.assertEqual(MAIN(["get", "pods", "--context", selected_context]), 1)
+            self.assertEqual(self.mock_run.call_count, 2)
 
     def test_rejects_all_mutations_and_execution_before_any_subprocess(self):
         for command in (
@@ -199,8 +260,9 @@ class ReadonlyTests(unittest.TestCase):
             "cp", "debug", "port-forward", "proxy", "plugin", "kustomize",
             "diff", "config", "auth", "arbitrary-plugin",
         ):
-            with self.subTest(command=command):
-                self.reject([command, "pods"])
+            for selected_context in CONTEXTS:
+                with self.subTest(command=command, context=selected_context):
+                    self.reject([command, "pods", "--context", selected_context])
         for subcommand in ("pause", "resume", "restart", "undo", "anything"):
             self.reject(["rollout", subcommand, "deployment/sumi"])
         self.reject(["top", "anything"])
@@ -230,12 +292,13 @@ class ReadonlyTests(unittest.TestCase):
             "--output-directory=/tmp/existing", "--template=/etc/passwd",
             "--req=1s", "--name=other", "--method=POST",
         ]
-        for base in bases:
-            for flag in dangerous:
-                with self.subTest(base=base, flag=flag):
-                    self.reject(base + [flag])
-        for base in bases:
-            self.reject(base + ["--", "exec", "pod/name", "sh"])
+        for selected_context in CONTEXTS:
+            for base in bases:
+                context_args = ["--context", selected_context]
+                for flag in dangerous:
+                    with self.subTest(context=selected_context, base=base, flag=flag):
+                        self.reject(base + context_args + [flag])
+                self.reject(base + context_args + ["--", "exec", "pod/name", "sh"])
 
     def test_paths_and_shell_payloads_are_not_resource_names(self):
         for value in (
@@ -326,14 +389,15 @@ class ReadonlyTests(unittest.TestCase):
             lambda d: d["clusters"].append(copy.deepcopy(d["clusters"][0])),
             lambda d: d.update(contexts=[]),
         ]
-        for mutate in mutations:
-            self.config = copy.deepcopy(CONFIG)
-            mutate(self.config)
-            self.mock_run.reset_mock()
-            with self.subTest(config=self.config), contextlib.redirect_stderr(io.StringIO()):
-                self.assertEqual(MAIN(["get", "pods"]), 1)
-                self.assertEqual(self.mock_run.call_count, 1)
-                self.assertFalse(self.operations)
+        for selected_context in CONTEXTS:
+            for mutate in mutations:
+                self.select_context(selected_context)
+                mutate(self.config)
+                self.mock_run.reset_mock()
+                with self.subTest(config=self.config), contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(MAIN(["get", "pods", "--context", selected_context]), 1)
+                    self.assertEqual(self.mock_run.call_count, 1)
+                    self.assertFalse(self.operations)
 
     def test_snapshot_keeps_only_known_fields_and_survives_source_change(self):
         self.config["clusters"][0]["cluster"]["extensions"] = [{"future": "bad"}]
@@ -421,9 +485,10 @@ class ReadonlyTests(unittest.TestCase):
         self.mock_run.assert_not_called()
 
     def test_parser_returns_only_normalized_allowlisted_arguments(self):
-        operation, output = PARSE(["get", "-ncell9", "pods", "--ignore-not-found=false"])
+        operation, output, selected_context = PARSE(["get", "-ncell9", "pods", "--ignore-not-found=false"])
         self.assertEqual(operation, ["get", "--namespace=cell9", "--ignore-not-found=false", "pods"])
         self.assertIsNone(output)
+        self.assertEqual(selected_context, CONTEXT)
 
 
 if __name__ == "__main__":
