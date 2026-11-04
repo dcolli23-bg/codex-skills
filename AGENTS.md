@@ -162,12 +162,17 @@ readlink -f ~/.codex/skills/kubectl-readonly
 
 Use `$kubectl-readonly` for RAD Billerica resource, log, metric, and rollout
 inspection. Invoke the installed executable directly and suggest that executable
-alone as the reusable approval prefix. It pins the Billerica context and API
-server, validates an explicit read command/flag allowlist, and uses a private
+alone as the reusable approval prefix. It defaults to `k8s/bg-rad-bill1-context`
+and accepts `--context='k8s/bg-rad-bill1-context-(privileged)'` after the command
+only when Dylan explicitly requests that context; never select it as an automatic
+fallback. It pins the selected Billerica context and API server, validates an
+explicit read command/flag allowlist, and uses a private
 certificate-only kubeconfig snapshot. Existing Kubernetes RBAC still applies,
 including to Secret reads. Mutations, execution, tunneling, other clusters, raw
 API paths, and unsupported flags are never covered. This wrapper does not
 provision cluster-side RBAC or change Codex approval rules.
+The managed kubeconfig is `.kube/config-auto` beneath the current OS account's
+home directory; caller `HOME` and `KUBECONFIG` overrides are ignored.
 
 Validate changes locally without contacting Kubernetes:
 

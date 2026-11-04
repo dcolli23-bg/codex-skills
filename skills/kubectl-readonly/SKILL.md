@@ -9,16 +9,28 @@ Use this wrapper for read-only Kubernetes inspection in RAD Billerica. Invoke th
 installed executable directly:
 
 ```bash
-/home/dcolli23/.codex/skills/kubectl-readonly/scripts/kubectl-readonly get pods -n cell9 -o wide
-/home/dcolli23/.codex/skills/kubectl-readonly/scripts/kubectl-readonly get pods -A --field-selector=metadata.name=sumi-2204-0 -o json --save-output /tmp/bil-sumi-pods.json
-/home/dcolli23/.codex/skills/kubectl-readonly/scripts/kubectl-readonly describe pod sumi-2204-0 -n cell13
-/home/dcolli23/.codex/skills/kubectl-readonly/scripts/kubectl-readonly logs sumi-2204-0 -n cell9 -c procman --tail=100 --timestamps
+~/.codex/skills/kubectl-readonly/scripts/kubectl-readonly get pods -n cell9 -o wide
+~/.codex/skills/kubectl-readonly/scripts/kubectl-readonly get pods -A --field-selector=metadata.name=sumi-2204-0 -o json --save-output /tmp/bil-sumi-pods.json
+~/.codex/skills/kubectl-readonly/scripts/kubectl-readonly describe pod sumi-2204-0 -n cell13
+~/.codex/skills/kubectl-readonly/scripts/kubectl-readonly logs sumi-2204-0 -n cell9 -c procman --tail=100 --timestamps
 ```
 
-The target is fixed to `k8s/bg-rad-bill1-context` and
-`https://k8s.rad-bill1.bg.bgrey.io:6443`, using the managed
-`/home/dcolli23/.kube/config-auto`. No context argument is needed. The identical
-`--context` is accepted; every other context is rejected. The wrapper validates
+The default context is `k8s/bg-rad-bill1-context`. When Dylan explicitly requests
+the privileged Billerica context, select it with a quoted argument:
+
+```bash
+~/.codex/skills/kubectl-readonly/scripts/kubectl-readonly get pods -n cell9 --context='k8s/bg-rad-bill1-context-(privileged)'
+```
+
+Do not select the privileged context automatically or retry with it after a
+permission or authentication failure. Only these two contexts are accepted;
+both retain the same read-only command and flag restrictions. Explicit
+`--context=k8s/bg-rad-bill1-context` is also accepted. Put `--context` after the
+command/subcommand, as shown above.
+
+The API server remains pinned to `https://k8s.rad-bill1.bg.bgrey.io:6443`, using
+the managed `.kube/config-auto` beneath the current OS account's home directory.
+Caller `HOME` and `KUBECONFIG` overrides are ignored. The wrapper validates
 the selected context, user, cluster, and TLS settings before a read, pins the
 server again on the actual invocation, and does not change the current context.
 It uses a private, allowlisted certificate-only kubeconfig snapshot for the read
@@ -64,10 +76,11 @@ For sandbox network escalation, invoke the executable directly with
 `sandbox_permissions: require_escalated` and suggest **only** this prefix:
 
 ```json
-["/home/dcolli23/.codex/skills/kubectl-readonly/scripts/kubectl-readonly"]
+["<account-home>/.codex/skills/kubectl-readonly/scripts/kubectl-readonly"]
 ```
 
-Do not include a command, namespace, or resource in the reusable prefix. Avoid
+Expand `<account-home>` to this machine's absolute home path. Do not include a
+command, namespace, or resource in the reusable prefix. Avoid
 shell wrappers, environment assignments, pipes, and redirection in the network
 command; use `--save-output` and process the saved response separately.
 It creates a new mode-0600 file only after success and never overwrites files or

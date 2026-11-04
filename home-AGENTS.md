@@ -145,8 +145,11 @@ failure does not prohibit subsequent `kubectl` work.
 For read-only RAD Billerica Kubernetes inspection, use the
 [kubectl-readonly skill](/home/dcolli23/.codex/skills/kubectl-readonly/SKILL.md)
 and invoke its executable directly. Its reusable approval is limited to
-`k8s/bg-rad-bill1-context`; it never authorizes writes, container execution,
-tunneling, or other clusters. This wrapper is also exempt from the container
+`k8s/bg-rad-bill1-context` by default, and also covers
+`k8s/bg-rad-bill1-context-(privileged)` when Dylan explicitly requests it.
+Select it with the wrapper's quoted `--context` argument; never switch to it
+automatically after a failure. Neither context authorizes writes, container
+execution, tunneling, or other clusters. This wrapper is also exempt from the container
 host guard. Unsupported operations need separate authorization, not a wrapper
 bypass or automatic expansion of its allowlist.
 
