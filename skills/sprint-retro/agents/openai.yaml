@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sprint Retro"
+  short_description: "Research sprint retros and maintain review totals"
+  default_prompt: "Use $sprint-retro to coordinate research for my sprint retrospective, maintain source-linked Obsidian notes, and draft a three-slide outline with speaker notes."

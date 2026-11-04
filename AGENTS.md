@@ -208,6 +208,23 @@ Grill and authorization boundaries, and prioritizes narrow scope and human
 reviewability. Its supporting templates cover the shared contract, assignments,
 and evidence ledger; no global home-instruction routing is added.
 
+## Sprint Retro Skill Installation
+
+The sprint retrospective workflow lives in `skills/sprint-retro/`. Install it
+using the personal-skill symlink pattern:
+
+```bash
+ln -sfn ~/code/codex-skills/skills/sprint-retro ~/.codex/skills/sprint-retro
+readlink -f ~/.codex/skills/sprint-retro
+```
+
+Use `$sprint-retro` for coordinator-led source research, progressive Obsidian
+retrospective notes, qualified review-workload totals, and a short Markdown slide
+outline. It prefers Terra-medium research workers when available, uses targeted
+follow-ups instead of full rebuilds, and preserves live note edits and original
+reporting snapshots. An actual presentation file is created only when requested.
+Its references cover source coverage, review counting, and note layout.
+
 ## Codex Session Release Installation
 
 The session-release skill lives in `skills/codex-session-release/`. Install it
