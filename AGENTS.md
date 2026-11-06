@@ -230,6 +230,30 @@ follow-ups instead of full rebuilds, and preserves live note edits and original
 reporting snapshots. An actual presentation file is created only when requested.
 Its references cover source coverage, review counting, and note layout.
 
+## Sprint Retro PowerPoint Skill Installation
+
+The deck-generation workflow lives in `skills/sprint-retro-powerpoint/`. Install
+it using the personal-skill symlink pattern:
+
+```bash
+ln -sfn ~/code/codex-skills/skills/sprint-retro-powerpoint ~/.codex/skills/sprint-retro-powerpoint
+readlink -f ~/.codex/skills/sprint-retro-powerpoint
+```
+
+Use `$sprint-retro-powerpoint for sprint-24` (or another folder under
+`~/journal/sprint-retros/`) to generate an editable BG-template deck in personal
+Box storage and inspect exact-version Box renders. It reads existing notes
+without rewriting them; `$sprint-retro` remains the research/outline workflow.
+New invocations create distinct decks unless an existing-deck update is explicit;
+QA revisions within one run update the same Box file.
+
+Validate the skill and its offline package checks without contacting Box:
+
+```bash
+python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/sprint-retro-powerpoint
+python3 -m unittest discover -s skills/sprint-retro-powerpoint/tests -v
+```
+
 ## Codex Session Release Installation
 
 The session-release skill lives in `skills/codex-session-release/`. Install it

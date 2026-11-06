@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sprint Retro PowerPoint"
+  short_description: "Build BG retro decks and verify Box-rendered slides"
+  default_prompt: "Use $sprint-retro-powerpoint to generate and verify my retrospective PowerPoint in Box from the sprint folder I specify."

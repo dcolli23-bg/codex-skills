@@ -8,7 +8,8 @@ description: Research Dylan's sprint retrospectives, maintain source-linked Obsi
 Build an evidence-backed retrospective in `~/journal/sprint-retros/sprint-N/`.
 Default to source notes, a synthesis, and a **three-slide Markdown outline with
 speaker notes**; honor a requested two-slide version. Create an actual deck only
-when requested, using the presentation skill.
+when requested, using `$sprint-retro-powerpoint` for the BG template and Box
+render-and-verify workflow.
 
 ## Establish the reporting contract
 
